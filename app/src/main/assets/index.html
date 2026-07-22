@@ -1,0 +1,1319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DP OFFSHORE TRAINER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1420; --panel:#111E30; --panel2:#16263C; --line:#22334A;
+  --cyan:#35D6C0; --cyan-dim:#1E4A45; --amber:#E7A94A; --amber-dim:#4A3A20;
+  --red:#E85C4E; --ink:#E7EEF6; --ink-dim:#87A0B6; --ink-faint:#4E657C;
+  --level-accent:#35D6C0; --level-accent-dim:#1E4A45;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+body{min-height:100vh;padding-bottom:40px;}
+body[data-level="avancado"]{--level-accent:#E7A94A;--level-accent-dim:#4A3A20;}
+.mono{font-family:'JetBrains Mono',monospace;}
+.disp{font-family:'Chakra Petch',sans-serif;}
+
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;background:linear-gradient(180deg,#0C1826,rgba(12,24,38,0.92));
+  border-bottom:1px solid var(--line);backdrop-filter:blur(6px);}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand svg{width:30px;height:30px;flex:none;}
+.brand-text .t1{font-family:'Chakra Petch',sans-serif;font-weight:700;font-size:15px;letter-spacing:0.5px;line-height:1.1;}
+.brand-text .t2{font-size:10px;color:var(--ink-dim);letter-spacing:1.5px;text-transform:uppercase;}
+.level-switch{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:3px;gap:2px;}
+.level-switch button{border:none;background:transparent;color:var(--ink-dim);font-family:'Chakra Petch',sans-serif;
+  font-size:12px;font-weight:600;letter-spacing:0.5px;padding:7px 13px;border-radius:16px;cursor:pointer;transition:all .2s;}
+.level-switch button.active{background:var(--level-accent);color:#08131c;}
+
+.settings-bar{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;
+  padding:10px 18px;background:var(--panel);border-bottom:1px solid var(--line);}
+.settings-group{display:flex;align-items:center;gap:9px;}
+.settings-label{font-size:11.5px;color:var(--ink-dim);white-space:nowrap;}
+.seg-control{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:2px;}
+.seg-control button{border:none;background:transparent;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:7px;cursor:pointer;letter-spacing:0.3px;}
+.seg-control button.active{background:var(--level-accent);color:#08131c;}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex:none;}
+.switch input{opacity:0;width:0;height:0;}
+.slider-toggle{position:absolute;cursor:pointer;inset:0;background:var(--panel2);border:1px solid var(--line);
+  border-radius:22px;transition:.2s;}
+.slider-toggle:before{position:absolute;content:"";height:16px;width:16px;left:2px;bottom:2px;
+  background:var(--ink-faint);border-radius:50%;transition:.2s;}
+.switch input:checked + .slider-toggle{background:var(--level-accent-dim);border-color:var(--level-accent);}
+.switch input:checked + .slider-toggle:before{transform:translateX(16px);background:var(--level-accent);}
+
+.hero{display:grid;grid-template-columns:minmax(200px,260px) 1fr;gap:22px;padding:22px 18px 6px;
+  max-width:1080px;margin:0 auto;align-items:center;}
+@media (max-width:640px){.hero{grid-template-columns:1fr;justify-items:center;text-align:center;}}
+.plot-wrap{position:relative;width:100%;max-width:240px;aspect-ratio:1/1;}
+.plot-wrap svg{width:100%;height:100%;}
+.hero-stats{display:flex;flex-direction:column;gap:10px;}
+.hero-stats h1{font-family:'Chakra Petch',sans-serif;font-size:19px;margin:0 0 2px;letter-spacing:0.3px;}
+.hero-stats p{margin:0;color:var(--ink-dim);font-size:13px;line-height:1.5;max-width:440px;}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.stat-chip{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:84px;}
+.stat-chip .v{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--level-accent);}
+.stat-chip .l{font-size:9px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:16px 18px 4px;max-width:1080px;margin:0 auto;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab-btn{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink-dim);
+  font-family:'Chakra Petch',sans-serif;font-size:12.5px;font-weight:600;letter-spacing:0.3px;
+  padding:9px 15px;border-radius:9px;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.tab-btn.active{background:var(--level-accent-dim);border-color:var(--level-accent);color:var(--level-accent);}
+
+main{max-width:1080px;margin:0 auto;padding:14px 18px 30px;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.section-head h2{font-family:'Chakra Petch',sans-serif;font-size:16px;margin:0;}
+.section-head .count{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-faint);text-align:right;}
+
+.cat-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.cat-pill{border:1px solid var(--line);background:var(--panel2);color:var(--ink-dim);font-size:11.5px;
+  padding:6px 11px;border-radius:14px;cursor:pointer;white-space:nowrap;}
+.cat-pill.active{border-color:var(--level-accent);color:var(--level-accent);background:var(--level-accent-dim);}
+
+.txt-pt{font-size:14.5px;font-weight:600;line-height:1.45;}
+.txt-en{font-size:13.5px;font-style:italic;color:var(--ink-dim);line-height:1.45;margin-top:4px;
+  display:flex;align-items:flex-start;gap:7px;}
+.txt-en span{flex:1;}
+.txt-phon{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--level-accent);
+  margin-top:3px;line-height:1.5;opacity:0.9;}
+.audio-btn{flex:none;border:1px solid var(--line);background:var(--panel2);color:var(--level-accent);
+  border-radius:7px;width:26px;height:26px;font-size:12px;cursor:pointer;line-height:1;padding:0;}
+.audio-btn:active{transform:scale(0.92);}
+
+.qa-card{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:16px;margin-bottom:10px;}
+.qa-card .tag{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--level-accent);letter-spacing:1px;text-transform:uppercase;}
+.qa-card .q-block{margin:8px 0 12px;}
+.qa-nav{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+.qa-nav button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;
+  padding:9px 16px;font-size:13px;cursor:pointer;font-family:'Chakra Petch',sans-serif;font-weight:600;}
+.qa-nav button:disabled{opacity:0.35;cursor:default;}
+.qa-progress{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-faint);}
+
+.quiz-progress-bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin-bottom:16px;}
+.quiz-progress-bar div{height:100%;background:var(--level-accent);transition:width .3s;}
+.quiz-q{margin-bottom:16px;}
+.quiz-opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+  padding:12px 14px;border-radius:10px;margin-bottom:8px;font-size:13.5px;cursor:pointer;font-family:'Inter',sans-serif;
+  line-height:1.4;transition:all .15s;outline:none;}
+.quiz-opt:hover{border-color:var(--ink-faint);}
+.quiz-opt:focus-visible{box-shadow:0 0 0 2px var(--level-accent);}
+.quiz-opt.correct{border-color:var(--cyan);background:var(--cyan-dim);color:var(--cyan);}
+.quiz-opt.wrong{border-color:var(--red);background:#3A1D1B;color:#F0958C;}
+.quiz-opt.disabled{cursor:default;}
+.quiz-opt.disabled:not(.correct):not(.wrong){opacity:0.5;}
+.quiz-opt .txt-en{color:inherit;opacity:0.8;}
+.quiz-footer{display:flex;justify-content:space-between;align-items:center;margin-top:14px;}
+.quiz-score{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--ink-dim);}
+.btn-primary{background:var(--level-accent);color:#08131c;border:none;font-family:'Chakra Petch',sans-serif;font-weight:700;
+  padding:10px 18px;border-radius:9px;cursor:pointer;font-size:13px;letter-spacing:0.3px;}
+.btn-primary:disabled{opacity:0.35;cursor:default;}
+.quiz-result{text-align:center;padding:24px 10px;}
+.quiz-result .big{font-family:'Chakra Petch',sans-serif;font-size:40px;font-weight:700;color:var(--level-accent);}
+.quiz-result p{color:var(--ink-dim);font-size:13.5px;margin-top:6px;}
+
+.prob-card{border:1px solid var(--line);background:var(--panel2);border-radius:12px;padding:16px;margin-bottom:10px;}
+.prob-card .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--amber);letter-spacing:1px;text-transform:uppercase;}
+.prob-card .p-block{margin:8px 0 12px;}
+
+.gloss-item{display:flex;align-items:flex-start;gap:12px;border:1px solid var(--line);background:var(--panel2);
+  border-radius:10px;padding:12px 14px;margin-bottom:8px;}
+.gloss-audio{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--level-accent);
+  border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;}
+.gloss-audio:active{transform:scale(0.92);}
+.gloss-text{flex:1;}
+.gloss-en{font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:600;}
+.gloss-phon{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--level-accent);margin-top:2px;}
+.gloss-pt{font-size:12.5px;color:var(--ink-dim);margin-top:3px;}
+.gloss-search{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  padding:10px 12px;border-radius:9px;font-size:13px;margin-bottom:12px;font-family:'Inter',sans-serif;}
+.gloss-note{font-size:11px;color:var(--ink-faint);line-height:1.6;margin-bottom:14px;}
+
+.foot-note{text-align:center;color:var(--ink-faint);font-size:11px;margin-top:28px;line-height:1.6;padding:0 20px;}
+
+.sim-grid{display:grid;grid-template-columns:1fr 300px;gap:18px;}
+@media (max-width:800px){.sim-grid{grid-template-columns:1fr;}}
+.sim-plot{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;align-items:center;}
+.sim-plot svg{width:100%;max-width:400px;}
+.sim-readout{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:400px;margin-top:10px;}
+.ro{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;}
+.ro .l{font-size:9px;color:var(--ink-faint);letter-spacing:1px;text-transform:uppercase;}
+.ro .v{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;margin-top:2px;}
+.ro .v.ok{color:var(--cyan);} .ro .v.warn{color:var(--amber);} .ro .v.bad{color:var(--red);}
+.sim-controls{display:flex;flex-direction:column;gap:14px;}
+.ctrl-group{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.ctrl-group .gl{font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:600;color:var(--ink-dim);letter-spacing:0.5px;text-transform:uppercase;margin-bottom:10px;}
+.slider-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;font-size:12px;color:var(--ink-dim);}
+.slider-row .val{font-family:'JetBrains Mono',monospace;color:var(--ink);}
+input[type=range]{width:100%;accent-color:var(--level-accent);margin:4px 0 12px;}
+select{width:100%;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 10px;
+  border-radius:8px;font-size:12.5px;font-family:'Inter',sans-serif;margin-top:2px;}
+.sim-btns{display:flex;gap:8px;}
+.sim-btns button{flex:1;}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-dim);font-family:'Chakra Petch',sans-serif;
+  font-weight:600;padding:10px 14px;border-radius:9px;cursor:pointer;font-size:12.5px;}
+.sim-note{font-size:10.5px;color:var(--ink-faint);line-height:1.5;margin-top:4px;}
+
+.thr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;}
+.thr-card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;}
+.thr-card.failed{border-color:var(--red);background:#2a1414;}
+.thr-name{font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:600;margin-bottom:8px;}
+.thr-bar{height:9px;background:var(--panel2);border-radius:5px;overflow:hidden;}
+.thr-bar-fill{height:100%;border-radius:5px;transition:width .3s;}
+.thr-meta{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-dim);margin-top:8px;}
+.thr-card.failed .thr-meta{color:#F0958C;}
+
+.alarm-list{display:flex;flex-direction:column;gap:6px;width:100%;max-height:380px;overflow-y:auto;}
+.alarm-item{display:flex;gap:10px;align-items:baseline;padding:9px 12px;border-radius:8px;background:var(--panel);
+  border:1px solid var(--line);font-size:12px;line-height:1.4;}
+.alarm-item.warn{border-color:var(--amber);color:#F5CE9B;}
+.alarm-item.bad{border-color:var(--red);color:#F0958C;}
+.alarm-item.ok{border-color:var(--cyan);color:#9FEBE0;}
+.alarm-time{font-family:'JetBrains Mono',monospace;color:var(--ink-faint);flex:none;font-size:11px;}
+.alarm-empty{color:var(--ink-faint);font-size:12.5px;text-align:center;padding:24px 10px;}
+</style>
+</head>
+<body data-level="basico">
+
+<div class="topbar">
+  <div class="brand">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18" stroke="#35D6C0" stroke-width="1.4" opacity="0.5"/>
+      <circle cx="20" cy="20" r="12" stroke="#35D6C0" stroke-width="1.2" opacity="0.7"/>
+      <path d="M20 8 L26 30 L20 26 L14 30 Z" fill="#35D6C0"/>
+      <circle cx="20" cy="20" r="1.6" fill="#E7EEF6"/>
+    </svg>
+    <div class="brand-text">
+      <div class="t1">DP OFFSHORE TRAINER</div>
+      <div class="t2" id="brand-tagline">Posicionamento Dinâmico</div>
+    </div>
+  </div>
+  <div class="level-switch">
+    <button id="btn-lvl-basico" class="active" onclick="setLevel('basico')">Básico</button>
+    <button id="btn-lvl-avancado" onclick="setLevel('avancado')">Avançado</button>
+  </div>
+</div>
+
+<div class="settings-bar">
+  <div class="settings-group">
+    <span class="settings-label" id="lbl-lang">Idioma do conteúdo</span>
+    <div class="seg-control" id="lang-switch">
+      <button data-val="pt" class="active">PT</button>
+      <button data-val="en">EN</button>
+      <button data-val="pt_en">PT+EN</button>
+    </div>
+  </div>
+  <div class="settings-group">
+    <label class="switch">
+      <input type="checkbox" id="pron-toggle">
+      <span class="slider-toggle"></span>
+    </label>
+    <span class="settings-label" id="lbl-pron">Guia de pronúncia + áudio 🔊</span>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="plot-wrap">
+    <svg id="hero-plot" viewBox="0 0 240 240"></svg>
+  </div>
+  <div class="hero-stats">
+    <h1 id="hero-title">Nível Básico</h1>
+    <p id="hero-sub"></p>
+    <div class="stat-row">
+      <div class="stat-chip"><div class="v" id="stat-total">100</div><div class="l" id="lbl-stat-total">Perguntas</div></div>
+      <div class="stat-chip"><div class="v" id="stat-seen">0</div><div class="l" id="lbl-stat-seen">Revisadas</div></div>
+      <div class="stat-chip"><div class="v" id="stat-correct">0/0</div><div class="l" id="lbl-stat-correct">Acertos</div></div>
+      <div class="stat-chip"><div class="v" id="stat-quiz">—</div><div class="l" id="lbl-stat-quiz">Último quiz</div></div>
+    </div>
+  </div>
+</section>
+
+<nav class="tabs" id="tabs"></nav>
+<main id="content"></main>
+
+<div class="foot-note" id="footer-note"></div>
+
+<script id="data-q" type="application/json">[{"id": 1, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "O que é Posicionamento Dinâmico (DP)?", "a_pt": "Sistema que usa propulsores próprios controlados por computador para manter automaticamente a posição e o rumo da embarcação, sem uso de âncoras.", "q_en": "What is Dynamic Positioning (DP)?", "a_en": "A system that uses the vessel's own computer-controlled thrusters to automatically maintain position and heading, without the use of anchors.", "opts_pt": null, "opts_en": null}, {"id": 2, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "Quais são os três elementos básicos de um sistema DP?", "a_pt": "Sensores de posição/referência, o computador de controle (sistema DP) e os propulsores (thrusters).", "q_en": "What are the three basic elements of a DP system?", "a_en": "Position/reference sensors, the control computer (DP system), and the propulsion units (thrusters).", "opts_pt": null, "opts_en": null}, {"id": 3, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "Qual é a função do computador DP?", "a_pt": "Comparar a posição e o rumo desejados com os valores medidos e calcular os comandos de empuxo para cada propulsor.", "q_en": "What is the function of the DP computer?", "a_en": "To compare the desired position and heading with the measured values and calculate the thrust commands for each thruster.", "opts_pt": null, "opts_en": null}, {"id": 4, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "O que significa \"setpoint\" em DP?", "a_pt": "A posição e o rumo desejados que o sistema deve manter.", "q_en": "What does \"setpoint\" mean in DP?", "a_en": "The desired position and heading that the system must maintain.", "opts_pt": null, "opts_en": null}, {"id": 5, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "Por que embarcações offshore usam DP em vez de ancoragem?", "a_pt": "Porque operam em águas profundas, próximas a estruturas submarinas, ou precisam de posicionamento preciso e rápida capacidade de manobra.", "q_en": "Why do offshore vessels use DP instead of anchoring?", "a_en": "Because they operate in deep water, close to subsea structures, or need precise positioning and fast maneuvering capability.", "opts_pt": null, "opts_en": null}, {"id": 6, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "O que é \"excursão de posição\" (position excursion)?", "a_pt": "O desvio da embarcação em relação ao setpoint, geralmente monitorado em metros.", "q_en": "What is \"position excursion\"?", "a_en": "The vessel's deviation from the setpoint, usually monitored in meters.", "opts_pt": null, "opts_en": null}, {"id": 7, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "O que é o \"footprint\" de uma embarcação em DP?", "a_pt": "A área de variação de posição observada ao redor do setpoint durante a operação.", "q_en": "What is a vessel's \"footprint\" in DP?", "a_en": "The area of position variation observed around the setpoint during the operation.", "opts_pt": null, "opts_en": null}, {"id": 8, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "Cite três forças ambientais que o DP precisa compensar.", "a_pt": "Vento, corrente marítima e ondas (incluindo a deriva de onda de 2ª ordem).", "q_en": "Name three environmental forces that DP must compensate for.", "a_en": "Wind, current, and waves (including second-order wave drift).", "opts_pt": null, "opts_en": null}, {"id": 9, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "O que indica um status \"verde\" no sistema DP?", "a_pt": "Que todos os sistemas críticos (energia, sensores, propulsores) estão operacionais e com redundância disponível.", "q_en": "What does a \"green\" status indicate in the DP system?", "a_en": "That all critical systems (power, sensors, thrusters) are operational and redundancy is available.", "opts_pt": null, "opts_en": null}, {"id": 10, "level": "basico", "cat": "Fundamentos de DP", "tipo": "qa", "q_pt": "Qual a diferença entre DP e piloto automático convencional?", "a_pt": "O DP controla posição e rumo simultaneamente usando múltiplos propulsores; o piloto automático controla apenas o rumo durante o deslocamento.", "q_en": "What is the difference between DP and a conventional autopilot?", "a_en": "DP controls position and heading simultaneously using multiple thrusters; an autopilot only controls heading while underway.", "opts_pt": null, "opts_en": null}, {"id": 11, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "Quantas classes de equipamento DP a IMO define?", "a_pt": "Três: DP Classe 1, 2 e 3, conforme a diretriz MSC/Circ.645.", "q_en": "How many DP equipment classes does the IMO define?", "a_en": "Three: DP Equipment Class 1, 2 and 3, per IMO guideline MSC/Circ.645.", "opts_pt": null, "opts_en": null}, {"id": 12, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que caracteriza DP Classe 1?", "a_pt": "Perda de posição pode ocorrer com uma única falha; não há requisito de redundância.", "q_en": "What characterizes DP Class 1?", "a_en": "Loss of position can occur with a single fault; there is no redundancy requirement.", "opts_pt": null, "opts_en": null}, {"id": 13, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que caracteriza DP Classe 2?", "a_pt": "Perda de posição não deve ocorrer com uma única falha em qualquer componente ativo, exceto compartimentos estanques.", "q_en": "What characterizes DP Class 2?", "a_en": "Loss of position must not occur with a single fault in any active component, except watertight compartments.", "opts_pt": null, "opts_en": null}, {"id": 14, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que caracteriza DP Classe 3?", "a_pt": "Redundância adicional com proteção contra fogo e alagamento, exigindo separação física entre sistemas redundantes.", "q_en": "What characterizes DP Class 3?", "a_en": "Additional redundancy includes protection against fire and flooding, requiring physical separation between redundant systems.", "opts_pt": null, "opts_en": null}, {"id": 15, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "Que tipo de operação normalmente exige DP Classe 3?", "a_pt": "Operações críticas, como perfuração em águas profundas, onde a perda de posição pode causar acidente grave.", "q_en": "What type of operation typically requires DP Class 3?", "a_en": "Critical operations, such as deepwater drilling, where loss of position could cause a serious accident.", "opts_pt": null, "opts_en": null}, {"id": 16, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que significa a notação DNV \"DYNPOS-AUTR\"?", "a_pt": "Equivalente a DP2: sistema autônomo com redundância, sem perda de posição numa única falha.", "q_en": "What does the DNV notation \"DYNPOS-AUTR\" mean?", "a_en": "Equivalent to DP2: an autonomous system with redundancy, with no loss of position on a single failure.", "opts_pt": null, "opts_en": null}, {"id": 17, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que significa \"AUTRO\" na notação DNV?", "a_pt": "Equivalente a DP3: redundância com separação física entre sistemas.", "q_en": "What does \"AUTRO\" mean in the DNV notation?", "a_en": "Equivalent to DP3: redundancy with physical separation between systems.", "opts_pt": null, "opts_en": null}, {"id": 18, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "Um rebocador de apoio offshore comum normalmente opera em qual classe DP?", "a_pt": "Frequentemente DP1 ou DP2, dependendo da operação e dos requisitos contratuais.", "q_en": "What DP class does a typical offshore support tug usually operate in?", "a_en": "Often DP1 or DP2, depending on the operation and contractual requirements.", "opts_pt": null, "opts_en": null}, {"id": 19, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "Quem define os requisitos de classe DP de uma embarcação?", "a_pt": "As sociedades classificadoras (DNV, ABS, Lloyd's Register, entre outras), com base nas diretrizes da IMO.", "q_en": "Who defines a vessel's DP class requirements?", "a_en": "Classification societies (DNV, ABS, Lloyd's Register, etc.), based on IMO guidelines.", "opts_pt": null, "opts_en": null}, {"id": 20, "level": "basico", "cat": "Classes DP (IMO)", "tipo": "qa", "q_pt": "O que é uma ASOG (Activity Specific Operating Guideline)?", "a_pt": "Documento que define os limites operacionais e o nível mínimo de equipamento redundante exigido para cada tarefa DP específica.", "q_en": "What is an ASOG (Activity Specific Operating Guideline)?", "a_en": "A document defining the operating limits and the minimum level of redundant equipment required for each specific DP task.", "opts_pt": null, "opts_en": null}, {"id": 21, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é um \"tunnel thruster\"?", "a_pt": "Propulsor instalado num túnel transversal ao casco, que gera empuxo lateral.", "q_en": "What is a \"tunnel thruster\"?", "a_en": "A thruster installed in a tunnel running across the hull, generating lateral thrust.", "opts_pt": null, "opts_en": null}, {"id": 22, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é um propulsor azimutal (azimuth thruster)?", "a_pt": "Propulsor que pode girar 360°, gerando empuxo em qualquer direção.", "q_en": "What is an azimuth thruster?", "a_en": "A thruster that can rotate 360°, generating thrust in any direction.", "opts_pt": null, "opts_en": null}, {"id": 23, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é um propulsor retrátil?", "a_pt": "Propulsor azimutal que pode ser recolhido para dentro do casco quando não está em uso, reduzindo o arrasto.", "q_en": "What is a retractable thruster?", "a_en": "An azimuth thruster that can be retracted into the hull when not in use, reducing drag.", "opts_pt": null, "opts_en": null}, {"id": 24, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "Qual a vantagem de propulsores azimutais sobre propulsores fixos?", "a_pt": "Permitem empuxo em qualquer direção sem girar a embarcação, aumentando a eficiência no DP.", "q_en": "What is the advantage of azimuth thrusters over fixed thrusters?", "a_en": "They allow thrust in any direction without turning the vessel, increasing DP efficiency.", "opts_pt": null, "opts_en": null}, {"id": 25, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é um propulsor tipo \"Z-drive\"?", "a_pt": "Propulsor azimutal com transmissão em ângulo que direciona a potência do motor até a hélice submersa.", "q_en": "What is a \"Z-drive\" thruster?", "a_en": "An azimuth thruster with an angled transmission that directs engine power down to the submerged propeller.", "opts_pt": null, "opts_en": null}, {"id": 26, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que são hélices contrarrotativas (CRP) em thrusters?", "a_pt": "Duas hélices no mesmo eixo girando em sentidos opostos, para melhorar a eficiência hidrodinâmica.", "q_en": "What are contra-rotating propellers (CRP) in thrusters?", "a_en": "Two propellers on the same shaft spinning in opposite directions to improve hydrodynamic efficiency.", "opts_pt": null, "opts_en": null}, {"id": 27, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é interação entre propulsores (thruster-thruster interaction)?", "a_pt": "Quando o fluxo de um propulsor interfere na eficiência de outro próximo, exigindo compensação no cálculo de alocação.", "q_en": "What is thruster-thruster interaction?", "a_en": "When the flow from one thruster interferes with the efficiency of another nearby, requiring compensation in the allocation calculation.", "opts_pt": null, "opts_en": null}, {"id": 28, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "Por que thrusters de proa e popa costumam ser combinados no DP?", "a_pt": "Para permitir controle independente de força lateral e momento de guinada em qualquer posição do navio.", "q_en": "Why are bow and stern thrusters usually combined in DP?", "a_en": "To allow independent control of lateral force and yaw moment at any position of the ship.", "opts_pt": null, "opts_en": null}, {"id": 29, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que é uma \"zona proibida\" (forbidden zone) na alocação de propulsores?", "a_pt": "Um setor angular no qual o propulsor não pode operar, geralmente para evitar colisão de jatos ou interferência com o casco.", "q_en": "What is a \"forbidden zone\" in thruster allocation?", "a_en": "An angular sector in which the thruster cannot operate, usually to avoid jet collision or interference with the hull.", "opts_pt": null, "opts_en": null}, {"id": 30, "level": "basico", "cat": "Propulsores (Thrusters)", "tipo": "qa", "q_pt": "O que acontece com a capacidade de posicionamento se um thruster principal falha?", "a_pt": "A redundância dos demais propulsores deve compensar a perda; caso contrário a embarcação pode perder posição.", "q_en": "What happens to positioning capability if a main thruster fails?", "a_en": "The redundancy of the remaining thrusters must compensate for the loss; otherwise the vessel may lose position.", "opts_pt": null, "opts_en": null}, {"id": 31, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é DGPS e para que serve no DP?", "a_pt": "GPS diferencial: fornece a posição absoluta da embarcação com correção de erro em tempo real.", "q_en": "What is DGPS and what is it used for in DP?", "a_en": "Differential GPS: it provides the vessel's absolute position with real-time error correction.", "opts_pt": null, "opts_en": null}, {"id": 32, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é HPR (Hydroacoustic Position Reference)?", "a_pt": "Sistema de referência de posição acústico subaquático, que mede a posição relativa a um transponder no fundo do mar.", "q_en": "What is HPR (Hydroacoustic Position Reference)?", "a_en": "An underwater acoustic position reference system that measures position relative to a transponder on the seabed.", "opts_pt": null, "opts_en": null}, {"id": 33, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é um sistema de referência a laser (ex: Fanbeam/CyScan)?", "a_pt": "Sistema óptico que mede distância e ângulo até um refletor prisma fixado numa estrutura, usado para posicionamento relativo.", "q_en": "What is a laser position reference system (e.g. Fanbeam/CyScan)?", "a_en": "An optical system that measures distance and angle to a prism reflector fixed on a structure, used for relative positioning.", "opts_pt": null, "opts_en": null}, {"id": 34, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é \"Taut Wire\"?", "a_pt": "Sistema de referência por cabo tensionado com peso no fundo do mar, medindo ângulo e comprimento do cabo.", "q_en": "What is a \"Taut Wire\" system?", "a_en": "A position reference system using a tensioned wire with a weight on the seabed, measuring angle and wire length.", "opts_pt": null, "opts_en": null}, {"id": 35, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "Por que o DP normalmente usa mais de um sistema de referência de posição?", "a_pt": "Para redundância e votação entre sensores, descartando leituras degradadas ou defeituosas.", "q_en": "Why does DP normally use more than one position reference system?", "a_en": "For redundancy and voting between sensors, discarding degraded or faulty readings.", "opts_pt": null, "opts_en": null}, {"id": 36, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é o sistema Artemis?", "a_pt": "Sistema de referência de posição por micro-ondas usado em operações relativas a estruturas fixas, como plataformas.", "q_en": "What is the Artemis system?", "a_en": "A microwave position reference system used for operations relative to fixed structures, such as platforms.", "opts_pt": null, "opts_en": null}, {"id": 37, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "Qual a diferença entre posição \"relativa\" e \"absoluta\" em DP?", "a_pt": "Absoluta usa coordenadas geográficas globais (ex: DGPS); relativa refere-se à posição em relação a um objeto específico.", "q_en": "What is the difference between \"relative\" and \"absolute\" position in DP?", "a_en": "Absolute uses global geographic coordinates (e.g. DGPS); relative refers to position with respect to a specific object.", "opts_pt": null, "opts_en": null}, {"id": 38, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que pode causar degradação de sinal DGPS?", "a_pt": "Multipercurso (multipath), obstrução por estruturas, interferência ou perda da correção diferencial.", "q_en": "What can cause DGPS signal degradation?", "a_en": "Multipath, obstruction by structures, interference, or loss of the differential correction.", "opts_pt": null, "opts_en": null}, {"id": 39, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "Por que sistemas acústicos podem falhar em águas rasas ou ruidosas?", "a_pt": "Interferência acústica de outras embarcações, bolhas de ar sob o casco ou reflexões no fundo/estruturas.", "q_en": "Why can acoustic systems fail in shallow or noisy waters?", "a_en": "Acoustic interference from other vessels, air bubbles under the hull, or reflections off the seabed and structures.", "opts_pt": null, "opts_en": null}, {"id": 40, "level": "basico", "cat": "Sistemas de Referência de Posição", "tipo": "qa", "q_pt": "O que é RTK (Real Time Kinematic) aplicado ao DP?", "a_pt": "Técnica de GPS de alta precisão que usa correções de uma estação de referência para reduzir o erro a poucos centímetros.", "q_en": "What is RTK (Real Time Kinematic) as applied to DP?", "a_en": "A high-precision GPS technique that uses corrections from a reference station to reduce error to a few centimeters.", "opts_pt": null, "opts_en": null}, {"id": 41, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que é um giroscópio (gyrocompass) e sua função no DP?", "a_pt": "Sensor que fornece o rumo da embarcação de forma independente do campo magnético.", "q_en": "What is a gyrocompass and its function in DP?", "a_en": "A sensor that provides the vessel's heading independently of the magnetic field.", "opts_pt": null, "opts_en": null}, {"id": 42, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que é um MRU (Motion Reference Unit)?", "a_pt": "Sensor que mede os movimentos de roll, pitch e heave da embarcação, usado para compensar os sensores de posição.", "q_en": "What is an MRU (Motion Reference Unit)?", "a_en": "A sensor that measures the vessel's roll, pitch and heave, used to compensate the position sensors.", "opts_pt": null, "opts_en": null}, {"id": 43, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "Qual a função do sensor de vento no sistema DP?", "a_pt": "Medir velocidade e direção do vento para antecipar (feedforward) o cálculo de empuxo necessário.", "q_en": "What is the function of the wind sensor in the DP system?", "a_en": "To measure wind speed and direction to anticipate (feedforward) the required thrust calculation.", "opts_pt": null, "opts_en": null}, {"id": 44, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que é \"feedforward\" de vento em DP?", "a_pt": "Técnica em que a força de vento medida é usada para antecipar o comando de empuxo, sem esperar o efeito no erro de posição.", "q_en": "What is wind \"feedforward\" in DP?", "a_en": "A technique where the measured wind force is used to anticipate the thrust command, instead of waiting for the effect on the position error.", "opts_pt": null, "opts_en": null}, {"id": 45, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "Por que o sistema DP precisa estimar a corrente marítima?", "a_pt": "Porque a corrente gera uma força contínua sobre o casco, que precisa ser compensada pelo empuxo.", "q_en": "Why does the DP system need to estimate sea current?", "a_en": "Because current generates a continuous force on the hull that needs to be compensated by thrust.", "opts_pt": null, "opts_en": null}, {"id": 46, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "Como o DP geralmente estima a corrente marítima?", "a_pt": "Indiretamente, comparando o empuxo comandado com o movimento observado, através do modelo matemático do navio.", "q_en": "How does DP usually estimate sea current?", "a_en": "Indirectly, by comparing the commanded thrust with the observed motion, through the vessel's mathematical model.", "opts_pt": null, "opts_en": null}, {"id": 47, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que é um VRS (Vertical Reference Sensor)?", "a_pt": "Outro nome para o sensor que mede os movimentos angulares e verticais (roll, pitch, heave) da embarcação.", "q_en": "What is a VRS (Vertical Reference Sensor)?", "a_en": "Another name for the sensor that measures the vessel's angular and vertical motions (roll, pitch, heave).", "opts_pt": null, "opts_en": null}, {"id": 48, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "Por que a redundância de giroscópios é essencial em DP2/DP3?", "a_pt": "Porque um erro de rumo não detectado pode causar um comando de empuxo incorreto e perda de posição.", "q_en": "Why is gyrocompass redundancy essential in DP2/DP3?", "a_en": "Because an undetected heading error can cause an incorrect thrust command and loss of position.", "opts_pt": null, "opts_en": null}, {"id": 49, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que pode causar falha comum a múltiplos sensores de rumo?", "a_pt": "Falha de alimentação elétrica comum, erro de instalação ou interferência eletromagnética compartilhada.", "q_en": "What can cause a common failure across multiple heading sensors?", "a_en": "A shared power failure, an installation error, or shared electromagnetic interference.", "opts_pt": null, "opts_en": null}, {"id": 50, "level": "basico", "cat": "Sensores Ambientais e de Movimento", "tipo": "qa", "q_pt": "O que faz um filtro de ondas aplicado a um sensor MRU?", "a_pt": "Remove o efeito do movimento de 1ª ordem das ondas antes de o sinal ser usado no controle de posição.", "q_en": "What does a wave filter applied to an MRU sensor do?", "a_en": "It removes the effect of first-order wave motion before the signal is used in position control.", "opts_pt": null, "opts_en": null}, {"id": 51, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "Por que a geração de energia é crítica para o sistema DP?", "a_pt": "Porque todos os propulsores e o sistema de controle dependem de energia elétrica contínua para manter a posição.", "q_en": "Why is power generation critical to the DP system?", "a_en": "Because all thrusters and the control system depend on continuous electrical power to maintain position.", "opts_pt": null, "opts_en": null}, {"id": 52, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "O que é um \"blackout\" numa embarcação DP?", "a_pt": "Perda total de energia elétrica, geralmente causando a perda de todos os propulsores e do controle DP.", "q_en": "What is a \"blackout\" on a DP vessel?", "a_en": "A total loss of electrical power, usually causing the loss of all thrusters and DP control.", "opts_pt": null, "opts_en": null}, {"id": 53, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "O que é redundância de barramento (\"split bus\") em sistemas de energia?", "a_pt": "Divisão do sistema elétrico em seções independentes, evitando que uma falha se propague por toda a rede.", "q_en": "What is bus redundancy (\"split bus\") in power systems?", "a_en": "A configuration where the electrical system is divided into independent sections, preventing a fault from spreading through the whole network.", "opts_pt": null, "opts_en": null}, {"id": 54, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "Por que geradores redundantes são exigidos em DP2/DP3?", "a_pt": "Para garantir que a perda de um gerador não cause perda total de energia e, consequentemente, de posição.", "q_en": "Why are redundant generators required in DP2/DP3?", "a_en": "To ensure that the loss of one generator does not cause a total loss of power and, consequently, of position.", "opts_pt": null, "opts_en": null}, {"id": 55, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "O que é UPS no contexto do sistema DP?", "a_pt": "Fonte de energia ininterrupta que mantém o computador DP e sensores críticos operando durante transições de energia.", "q_en": "What is a UPS in the context of the DP system?", "a_en": "An uninterruptible power supply that keeps the DP computer and critical sensors running during power transitions.", "opts_pt": null, "opts_en": null}, {"id": 56, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "O que é \"load sharing\" entre geradores?", "a_pt": "Distribuição balanceada de carga elétrica entre múltiplos geradores operando em paralelo.", "q_en": "What is \"load sharing\" between generators?", "a_en": "The balanced distribution of electrical load between multiple generators operating in parallel.", "opts_pt": null, "opts_en": null}, {"id": 57, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "Por que thrusters de grande potência podem causar \"voltage dip\" ao acelerar?", "a_pt": "A alta demanda instantânea de corrente pode reduzir temporariamente a tensão da rede elétrica.", "q_en": "Why can high-power thrusters cause a \"voltage dip\" when accelerating?", "a_en": "The sudden high current demand can temporarily reduce the network's voltage.", "opts_pt": null, "opts_en": null}, {"id": 58, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "O que faz um sistema de proteção contra sobrecarga de energia (\"blocker\")?", "a_pt": "Limita ou desconecta cargas para evitar que uma sobrecarga cause blackout total.", "q_en": "What does an overload protection system (\"blocker\") do?", "a_en": "It limits or disconnects loads to prevent an overload from causing a total blackout.", "opts_pt": null, "opts_en": null}, {"id": 59, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "Qual o papel do PMS (Power Management System) numa embarcação DP?", "a_pt": "Gerenciar automaticamente a partida, parada e distribuição de carga dos geradores, mantendo energia suficiente e segura.", "q_en": "What is the role of the PMS (Power Management System) on a DP vessel?", "a_en": "To automatically manage the starting, stopping and load distribution of generators, keeping power sufficient and safe.", "opts_pt": null, "opts_en": null}, {"id": 60, "level": "basico", "cat": "Sistema de Energia", "tipo": "qa", "q_pt": "Por que a separação física de geradores é exigida em DP Classe 3?", "a_pt": "Para que um incêndio ou alagamento num compartimento não danifique todos os sistemas de energia redundantes.", "q_en": "Why is physical separation of generators required in DP Class 3?", "a_en": "So that a fire or flooding in one compartment does not damage all redundant power systems.", "opts_pt": null, "opts_en": null}, {"id": 61, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Qual é a principal responsabilidade do DPO?", "a_pt": "Monitorar continuamente o sistema DP, os sensores, o clima e a operação, intervindo quando necessário.", "q_en": "What is the DPO's main responsibility?", "a_en": "To continuously monitor the DP system, sensors, weather and the operation, intervening whenever necessary.", "opts_pt": null, "opts_en": null}, {"id": 62, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "O que é o \"DP Watch Log\"?", "a_pt": "Registro periódico das condições dos sistemas DP, sensores, alarmes e status operacional durante a guarda.", "q_en": "What is the \"DP Watch Log\"?", "a_en": "A periodic record of the condition of the DP systems, sensors, alarms and operational status during the watch.", "opts_pt": null, "opts_en": null}, {"id": 63, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Por que o DPO deve conhecer o \"modo de consequência\"?", "a_pt": "Porque esse modo desliga propulsores não essenciais após uma falha para evitar blackout, e o DPO precisa entender o impacto na capacidade de manter posição.", "q_en": "Why must the DPO know the \"consequence mode\"?", "a_en": "Because this mode shuts down non-essential thrusters after a failure to prevent blackout, and the DPO must understand the impact on the ability to keep position.", "opts_pt": null, "opts_en": null}, {"id": 64, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Como a ASOG orienta a prática do DPO?", "a_pt": "Define os limites ambientais e de equipamento aceitáveis para conduzir uma tarefa específica em segurança.", "q_en": "How does the ASOG guide the DPO's practice?", "a_en": "It defines the acceptable environmental and equipment limits for safely carrying out a specific task.", "opts_pt": null, "opts_en": null}, {"id": 65, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Por que o DPO testa propulsores e sensores antes de operações críticas?", "a_pt": "Para confirmar que todos os equipamentos redundantes estão funcionando antes de assumir o risco operacional.", "q_en": "Why does the DPO test thrusters and sensors before critical operations?", "a_en": "To confirm that all redundant equipment is working before taking on operational risk.", "opts_pt": null, "opts_en": null}, {"id": 66, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "O que o DPO deve fazer ao perceber degradação de um sistema de referência de posição?", "a_pt": "Verificar a causa, reduzir o peso do sensor degradado no cálculo e informar a ponte/gerência conforme o procedimento.", "q_en": "What should the DPO do upon noticing degradation of a position reference system?", "a_en": "Check the cause, reduce the weight of the degraded sensor in the calculation, and inform the bridge and management as per procedure.", "opts_pt": null, "opts_en": null}, {"id": 67, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "O que é tipicamente um \"Yellow Alert\" num sistema DP?", "a_pt": "Um estado de aviso indicando degradação de redundância, exigindo atenção do DPO sem que haja perda de posição.", "q_en": "What is typically a \"Yellow Alert\" in a DP system?", "a_en": "A warning state indicating loss of redundancy, requiring the DPO's attention without an actual loss of position.", "opts_pt": null, "opts_en": null}, {"id": 68, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Por que a comunicação entre o DPO e a estrutura vizinha é essencial?", "a_pt": "Para coordenar procedimentos de emergência e agir rapidamente em caso de perda de posição.", "q_en": "Why is communication between the DPO and the nearby structure essential?", "a_en": "To coordinate emergency procedures and act quickly in the event of loss of position.", "opts_pt": null, "opts_en": null}, {"id": 69, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Como o princípio \"nenhuma falha única deve causar perda de posição\" orienta o DPO?", "a_pt": "O DPO deve garantir que a configuração operacional nunca dependa de um único componente cuja falha isolada cause perda de posição.", "q_en": "How does the principle \"no single failure should cause loss of position\" guide the DPO?", "a_en": "The DPO must ensure that the operational configuration never depends on a single component whose isolated failure would cause loss of position.", "opts_pt": null, "opts_en": null}, {"id": 70, "level": "basico", "cat": "O Papel do DPO", "tipo": "qa", "q_pt": "Qual certificação internacional é exigida para atuar como DPO?", "a_pt": "Certificado do Nautical Institute (DP Basic e Advanced/Unlimited), com registro de horas de experiência supervisionada.", "q_en": "What international certification is required to work as a DPO?", "a_en": "A Nautical Institute certificate (DP Basic and Advanced/Unlimited), with a logbook of supervised experience hours.", "opts_pt": null, "opts_en": null}, {"id": 71, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um AHTS (Anchor Handling Tug Supply)?", "a_pt": "Embarcação que realiza manuseio de âncoras, rebocagem e suprimento a plataformas, frequentemente equipada com DP.", "q_en": "What is an AHTS (Anchor Handling Tug Supply)?", "a_en": "A vessel that performs anchor handling, towing and supply to platforms, often fitted with DP.", "opts_pt": null, "opts_en": null}, {"id": 72, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um PSV (Platform Supply Vessel)?", "a_pt": "Embarcação de suprimento que transporta carga, combustível e água para plataformas, usando DP em manobras próximas.", "q_en": "What is a PSV (Platform Supply Vessel)?", "a_en": "A supply vessel that carries cargo, fuel and water to platforms, using DP for close maneuvering.", "opts_pt": null, "opts_en": null}, {"id": 73, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é uma unidade de perfuração semi-submersível?", "a_pt": "Plataforma flutuante com colunas submersas que fornece estabilidade, podendo usar DP ou ancoragem durante a perfuração.", "q_en": "What is a semi-submersible drilling unit?", "a_en": "A floating unit with submerged columns that provides stability, which may use DP or mooring to hold position during drilling.", "opts_pt": null, "opts_en": null}, {"id": 74, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um drillship (navio-sonda)?", "a_pt": "Navio equipado com torre de perfuração e sistema DP, capaz de perfurar em águas ultraprofundas sem ancoragem.", "q_en": "What is a drillship?", "a_en": "A ship fitted with a drilling derrick and a DP system, capable of drilling in ultra-deep water without anchoring.", "opts_pt": null, "opts_en": null}, {"id": 75, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um DSV (Dive Support Vessel)?", "a_pt": "Embarcação de apoio a mergulho, que exige posicionamento extremamente preciso pela presença de mergulhadores/ROVs na água.", "q_en": "What is a DSV (Dive Support Vessel)?", "a_en": "A vessel supporting diving operations, requiring extremely precise positioning due to divers and ROVs in the water.", "opts_pt": null, "opts_en": null}, {"id": 76, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um cable-lay vessel e por que precisa de DP?", "a_pt": "Embarcação especializada em lançamento de cabos submarinos, que precisa manter rumo e velocidade precisos durante o lançamento.", "q_en": "What is a cable-lay vessel and why does it need DP?", "a_en": "A vessel specialized in laying subsea cables, which needs to maintain precise heading and speed during the lay.", "opts_pt": null, "opts_en": null}, {"id": 77, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "Por que rebocadores offshore usam DP em operações próximas a plataformas?", "a_pt": "Para manter posição segura e controlada durante conexão/desconexão de cabos de reboque em mar variável.", "q_en": "Why do offshore tugs use DP in operations near platforms?", "a_en": "To maintain a safe, controlled position during connection and disconnection of towing lines in variable sea conditions.", "opts_pt": null, "opts_en": null}, {"id": 78, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que é um FPSO e como o DP se relaciona a ele?", "a_pt": "Unidade Flutuante de Produção, Armazenamento e Transferência; embarcações de apoio próximas usam DP em operações de offloading.", "q_en": "What is an FPSO and how does DP relate to it?", "a_en": "A Floating Production, Storage and Offloading unit; support vessels nearby use DP for offloading operations.", "opts_pt": null, "opts_en": null}, {"id": 79, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "Por que embarcações de instalação de cabos/dutos precisam de alta precisão de posição e rumo?", "a_pt": "Pequenos desvios podem comprometer o traçado do cabo/duto ou danificar infraestrutura submarina.", "q_en": "Why do cable and pipe-laying vessels need high position and heading precision?", "a_en": "Small deviations can compromise the cable or pipeline route or damage subsea infrastructure.", "opts_pt": null, "opts_en": null}, {"id": 80, "level": "basico", "cat": "Tipos de Embarcações Offshore", "tipo": "qa", "q_pt": "O que diferencia um AHTS de um PSV no uso do DP?", "a_pt": "O AHTS realiza manobras de tração e manuseio de âncoras com cargas dinâmicas elevadas; o PSV foca em posicionamento estável para transferência de carga.", "q_en": "What distinguishes an AHTS from a PSV in the use of DP?", "a_en": "An AHTS performs towing and anchor-handling maneuvers with high dynamic loads; a PSV focuses on stable positioning for cargo transfer.", "opts_pt": null, "opts_en": null}, {"id": 81, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "O DP mostra perda de sinal de um dos DGPS enquanto o navio opera próximo a uma plataforma.", "a_pt": "O sistema de votação deve reduzir automaticamente o peso do sensor degradado; o DPO verifica a causa (obstrução, multipath) e monitora os demais sistemas antes de decidir continuar ou abortar a operação.", "q_en": "The DP shows loss of signal from one of the DGPS units while the vessel operates close to a platform.", "a_en": "The voting system should automatically reduce the weight of the degraded sensor; the DPO checks the cause (obstruction, multipath) and monitors the remaining systems before deciding whether to continue or abort.", "opts_pt": null, "opts_en": null}, {"id": 82, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "Um thruster principal apresenta sobrecorrente e desarma automaticamente.", "a_pt": "O sistema redistribui o empuxo entre os propulsores restantes; o DPO avalia se a capacidade residual é suficiente para as condições ambientais, seguindo a ASOG.", "q_en": "A main thruster shows overcurrent and trips automatically.", "a_en": "The system redistributes thrust among the remaining thrusters; the DPO assesses whether the residual capacity is enough for the current environmental conditions, per the ASOG.", "opts_pt": null, "opts_en": null}, {"id": 83, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "O vento aumenta subitamente além do limite operacional da ASOG.", "a_pt": "O DPO avalia a capacidade residual, reduz ou suspende a operação crítica e considera afastar-se da estrutura se a margem de segurança for insuficiente.", "q_en": "Wind suddenly increases beyond the ASOG's operating limit.", "a_en": "The DPO assesses the residual capacity, reduces or suspends the critical operation, and considers moving away from the structure if the safety margin is insufficient.", "opts_pt": null, "opts_en": null}, {"id": 84, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "Ocorre um \"voltage dip\" ao acelerar um thruster de grande potência.", "a_pt": "O PMS deve gerenciar a carga e acionar geradores adicionais previamente; o DPO verifica se há reserva de energia (\"spinning reserve\") conforme o modo de consequência.", "q_en": "A \"voltage dip\" occurs when accelerating a high-power thruster.", "a_en": "The PMS should manage the load and start additional generators beforehand; the DPO checks whether a spinning reserve is configured per the consequence mode.", "opts_pt": null, "opts_en": null}, {"id": 85, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "Dois sistemas de referência de posição divergem significativamente entre si.", "a_pt": "O sistema alerta a divergência (position reference mismatch); o DPO investiga qual sensor está com erro e o remove do cálculo.", "q_en": "Two position reference systems diverge significantly from each other.", "a_en": "The system flags the mismatch (position reference mismatch); the DPO investigates which sensor is at fault and removes it from the calculation.", "opts_pt": null, "opts_en": null}, {"id": 86, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "Um gerador falha e o modo de consequência não está ativado.", "a_pt": "Há risco de blackout parcial por sobrecarga; o DPO deveria ter ativado previamente o modo de consequência para desligar cargas não essenciais.", "q_en": "A generator fails and consequence mode is not activated.", "a_en": "There is a risk of a partial blackout due to overload; the DPO should have activated consequence mode beforehand to shed non-essential loads.", "opts_pt": null, "opts_en": null}, {"id": 87, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "A embarcação apresenta \"drift-off\" (deriva lenta) sem alarme claro.", "a_pt": "O DPO confirma a posição com um sistema de referência independente, verifica falha silenciosa de sensor ou de modelo ambiental, e assume controle manual se necessário.", "q_en": "The vessel shows a \"drift-off\" (slow drift) without a clear alarm.", "a_en": "The DPO confirms the position with an independent reference system, checks for a silent sensor or environmental model fault, and takes manual control if necessary.", "opts_pt": null, "opts_en": null}, {"id": 88, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "A embarcação apresenta \"drive-off\" (movimento acelerado por comando incorreto).", "a_pt": "O DPO deve imediatamente assumir controle manual/joystick ou zerar os propulsores, pois é um evento crítico com risco de colisão.", "q_en": "The vessel shows a \"drive-off\" (fast movement caused by an incorrect command).", "a_en": "The DPO must immediately take manual/joystick control or zero the thrusters, as this is a critical safety event with collision risk.", "opts_pt": null, "opts_en": null}, {"id": 89, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "Ruído acústico de outra embarcação interfere no sistema HPR.", "a_pt": "Coordenar com as embarcações próximas para reduzir ruído, alternar para outro sistema de referência (DGPS/laser) e registrar o evento.", "q_en": "Acoustic noise from another vessel interferes with the HPR system.", "a_en": "Coordinate with nearby vessels to reduce noise, switch to another reference system (DGPS/laser), and log the event.", "opts_pt": null, "opts_en": null}, {"id": 90, "level": "basico", "cat": "Problemas e Soluções", "tipo": "problem", "q_pt": "A ASOG define um limite ambiental próximo de ser atingido durante um mergulho crítico.", "a_pt": "O DPO comunica a supervisão, prepara a suspensão segura da operação e segue o plano de contingência antes de atingir o limite.", "q_en": "The ASOG sets an environmental limit that is close to being reached during a critical diving operation.", "a_en": "The DPO informs supervision, prepares for a safe suspension of the operation, and follows the contingency plan before reaching the limit.", "opts_pt": null, "opts_en": null}, {"id": 91, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"DGPS\"?", "a_pt": "Global Positioning System Diferencial", "q_en": "What does the acronym \"DGPS\" stand for?", "a_en": "Differential Global Positioning System", "opts_pt": ["Global Positioning System Diferencial", "Sistema de Referência Acústica", "Unidade de Movimento de Referência", "Guia Operacional de Atividade"], "opts_en": ["Differential Global Positioning System", "Hydroacoustic Position Reference System", "Motion Reference Unit", "Activity Specific Operating Guideline"]}, {"id": 92, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"HPR\"?", "a_pt": "Referência de Posição Hidroacústica", "q_en": "What does the acronym \"HPR\" stand for?", "a_en": "Hydroacoustic Position Reference", "opts_pt": ["Referência de Posição Hidroacústica", "Sistema de Gerenciamento de Energia", "Análise de Modos de Falha", "Operador de Posicionamento Dinâmico"], "opts_en": ["Hydroacoustic Position Reference", "Power Management System", "Failure Mode and Effects Analysis", "Dynamic Positioning Operator"]}, {"id": 93, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"MRU\"?", "a_pt": "Unidade de Referência de Movimento", "q_en": "What does the acronym \"MRU\" stand for?", "a_en": "Motion Reference Unit", "opts_pt": ["Unidade de Referência de Movimento", "Sistema de Alocação de Empuxo", "Referência de Posição por Laser", "Guia de Operação Específica"], "opts_en": ["Motion Reference Unit", "Thrust Allocation System", "Laser Position Reference", "Activity Specific Operating Guideline"]}, {"id": 94, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"DPO\"?", "a_pt": "Operador de Posicionamento Dinâmico", "q_en": "What does the acronym \"DPO\" stand for?", "a_en": "Dynamic Positioning Operator", "opts_pt": ["Operador de Posicionamento Dinâmico", "Sistema de Gerenciamento de Energia", "Unidade de Referência de Movimento", "Análise de Consequência"], "opts_en": ["Dynamic Positioning Operator", "Power Management System", "Motion Reference Unit", "Consequence Analysis"]}, {"id": 95, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"ASOG\"?", "a_pt": "Guia Operacional Específico da Atividade", "q_en": "What does the acronym \"ASOG\" stand for?", "a_en": "Activity Specific Operating Guideline", "opts_pt": ["Guia Operacional Específico da Atividade", "Sistema de Referência Hidroacústica", "Unidade de Perfuração Semi-submersível", "Filtro de Kalman"], "opts_en": ["Activity Specific Operating Guideline", "Hydroacoustic Position Reference System", "Semi-Submersible Drilling Unit", "Kalman Filter"]}, {"id": 96, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"PMS\"?", "a_pt": "Sistema de Gerenciamento de Energia", "q_en": "What does the acronym \"PMS\" stand for?", "a_en": "Power Management System", "opts_pt": ["Sistema de Gerenciamento de Energia", "Sistema de Referência de Posição", "Unidade de Manuseio de Âncoras", "Modo de Consequência"], "opts_en": ["Power Management System", "Position Reference System", "Anchor Handling Unit", "Consequence Mode"]}, {"id": 97, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"FMEA\"?", "a_pt": "Análise de Modos de Falha e Efeitos", "q_en": "What does the acronym \"FMEA\" stand for?", "a_en": "Failure Mode and Effects Analysis", "opts_pt": ["Análise de Modos de Falha e Efeitos", "Guia Operacional Específico da Atividade", "Sistema de Posicionamento Global Diferencial", "Rede de Comunicação Redundante"], "opts_en": ["Failure Mode and Effects Analysis", "Activity Specific Operating Guideline", "Differential Global Positioning System", "Redundant Communication Network"]}, {"id": 98, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"WCFDI\"?", "a_pt": "Intenção de Projeto para a Pior Falha", "q_en": "What does the acronym \"WCFDI\" stand for?", "a_en": "Worst Case Failure Design Intent", "opts_pt": ["Intenção de Projeto para a Pior Falha", "Sistema de Referência Óptica", "Unidade de Apoio a Mergulho", "Modo Joystick Independente"], "opts_en": ["Worst Case Failure Design Intent", "Optical Reference System", "Dive Support Unit", "Independent Joystick System"]}, {"id": 99, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"AHTS\"?", "a_pt": "Rebocador de Manuseio de Âncoras e Suprimento", "q_en": "What does the acronym \"AHTS\" stand for?", "a_en": "Anchor Handling Tug Supply", "opts_pt": ["Rebocador de Manuseio de Âncoras e Suprimento", "Navio de Perfuração", "Plataforma Semi-submersível", "Unidade de Referência Vertical"], "opts_en": ["Anchor Handling Tug Supply", "Drillship", "Semi-Submersible Platform", "Vertical Reference Unit"]}, {"id": 100, "level": "basico", "cat": "Puzzle de Terminologia", "tipo": "puzzle", "q_pt": "O que significa a sigla \"PSV\"?", "a_pt": "Embarcação de Suprimento a Plataformas", "q_en": "What does the acronym \"PSV\" stand for?", "a_en": "Platform Supply Vessel", "opts_pt": ["Embarcação de Suprimento a Plataformas", "Unidade Flutuante de Produção", "Embarcação de Lançamento de Cabos", "Rebocador de Apoio Offshore"], "opts_en": ["Platform Supply Vessel", "Floating Production Unit", "Cable-Lay Vessel", "Offshore Support Tug"]}, {"id": 101, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "Qual é a função do filtro de Kalman em um sistema DP moderno?", "a_pt": "Estimar o estado real da embarcação (posição, velocidade, rumo), filtrando o ruído de medição e o movimento de onda de 1ª ordem a partir de múltiplos sensores.", "q_en": "What is the function of the Kalman filter in a modern DP system?", "a_en": "To estimate the vessel's true state (position, velocity, heading), filtering measurement noise and first-order wave motion from multiple sensors.", "opts_pt": null, "opts_en": null}, {"id": 102, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "Por que o filtro de Kalman é preferido a filtros passa-baixa simples em DP?", "a_pt": "Porque fornece uma estimativa ótima considerando o modelo dinâmico do navio e as incertezas estatísticas dos sensores, reduzindo atraso e ruído sem perder resposta.", "q_en": "Why is the Kalman filter preferred over simple low-pass filters in DP?", "a_en": "Because it provides an optimal estimate considering the vessel's dynamic model and the statistical uncertainties of the sensors, reducing lag and noise without losing response.", "opts_pt": null, "opts_en": null}, {"id": 103, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "O que é o \"vessel model\" (modelo matemático do navio) usado pelo controlador DP?", "a_pt": "Representação matemática da dinâmica do navio (massa, inércia, coeficientes hidrodinâmicos) usada para prever o comportamento e calcular os comandos de empuxo.", "q_en": "What is the \"vessel model\" used by the DP controller?", "a_en": "A mathematical representation of the vessel's dynamics (mass, inertia, hydrodynamic coefficients) used to predict behavior and calculate thrust commands.", "opts_pt": null, "opts_en": null}, {"id": 104, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "O que é o \"wave filtering\" no controlador DP?", "a_pt": "Processo que separa o movimento de 1ª ordem induzido por ondas, que não deve ser compensado pelos propulsores, do movimento real de baixa frequência.", "q_en": "What is \"wave filtering\" in the DP controller?", "a_en": "The process that separates first-order wave-induced motion, which should not be compensated by the thrusters, from the real low-frequency motion.", "opts_pt": null, "opts_en": null}, {"id": 105, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "Por que compensar o movimento de onda de 1ª ordem com os propulsores seria prejudicial?", "a_pt": "Causaria desgaste excessivo e resposta oscilatória dos propulsores sem benefício real, pois esse movimento é cíclico e não representa deriva real.", "q_en": "Why would compensating first-order wave motion with the thrusters be harmful?", "a_en": "It would cause excessive wear and an oscillatory thruster response with no real benefit, since this motion is cyclical and does not represent real drift.", "opts_pt": null, "opts_en": null}, {"id": 106, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "O que é \"adaptive control\" aplicado a sistemas DP?", "a_pt": "Técnica em que os parâmetros do controlador se ajustam automaticamente conforme as condições ambientais e a resposta observada do navio mudam.", "q_en": "What is \"adaptive control\" applied to DP systems?", "a_en": "A technique in which the controller's parameters automatically adjust as environmental conditions and the observed vessel response change.", "opts_pt": null, "opts_en": null}, {"id": 107, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "O que representa o termo \"bias force\" na estimativa do controlador DP?", "a_pt": "A força ambiental constante estimada (corrente, vento residual, erros de modelo) que o controlador compensa continuamente com empuxo.", "q_en": "What does the term \"bias force\" represent in the DP controller's estimate?", "a_en": "The estimated constant environmental force (current, residual wind, model errors) that the controller continuously compensates for with thrust.", "opts_pt": null, "opts_en": null}, {"id": 108, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "Como o controle PID clássico se relaciona ao controle DP moderno?", "a_pt": "Sistemas DP usam controle PID combinado a filtros de Kalman e modelos preditivos para calcular o empuxo total requerido.", "q_en": "How does classic PID control relate to modern DP control?", "a_en": "DP systems use PID control combined with Kalman filters and predictive models to calculate the total required thrust.", "opts_pt": null, "opts_en": null}, {"id": 109, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "O que é controle preditivo baseado em modelo (MPC) em DP?", "a_pt": "Estratégia que prevê o comportamento futuro do navio para otimizar os comandos de empuxo considerando restrições, usada em sistemas mais avançados.", "q_en": "What is Model Predictive Control (MPC) in DP?", "a_en": "A strategy that predicts the vessel's future behavior to optimize thrust commands considering constraints, used in more advanced DP systems.", "opts_pt": null, "opts_en": null}, {"id": 110, "level": "avancado", "cat": "Teoria de Controle e Modelagem", "tipo": "qa", "q_pt": "Por que a estimativa de rumo é acoplada à estimativa de posição no filtro do DP?", "a_pt": "Porque a dinâmica de guinada afeta diretamente a resposta lateral do navio, exigindo uma estimativa conjunta e consistente.", "q_en": "Why is heading estimation coupled to position estimation in the DP filter?", "a_en": "Because yaw dynamics directly affect the vessel's lateral response, requiring a joint and consistent estimate.", "opts_pt": null, "opts_en": null}, {"id": 111, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "O que é uma FMEA em sistemas DP?", "a_pt": "Análise de Modos de Falha e Efeitos: estudo sistemático de como cada componente pode falhar e qual o impacto na capacidade de manter posição.", "q_en": "What is an FMEA in DP systems?", "a_en": "A Failure Mode and Effects Analysis: a systematic study of how each component can fail and its impact on the ability to hold position.", "opts_pt": null, "opts_en": null}, {"id": 112, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "Qual é o objetivo de uma \"FMEA Proving Trial\"?", "a_pt": "Verificar na prática, através de testes reais a bordo, que os resultados teóricos da FMEA estão corretos e a redundância funciona como projetado.", "q_en": "What is the objective of an \"FMEA Proving Trial\"?", "a_en": "To verify in practice, through real onboard tests, that the theoretical FMEA results are correct and that redundancy works as designed.", "opts_pt": null, "opts_en": null}, {"id": 113, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "O que é um \"single point of failure\" identificado numa FMEA?", "a_pt": "Um componente cuja falha isolada pode causar perda de posição, apesar da redundância projetada.", "q_en": "What is a \"single point of failure\" identified in an FMEA?", "a_en": "A component whose isolated failure can cause loss of position, despite the designed redundancy.", "opts_pt": null, "opts_en": null}, {"id": 114, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "Por que a FMEA deve ser revisada após modificações no sistema DP?", "a_pt": "Porque qualquer alteração em equipamentos, cabeamento ou software pode introduzir novos modos de falha ou invalidar redundâncias verificadas.", "q_en": "Why must the FMEA be reviewed after modifications to the DP system?", "a_en": "Because any change to equipment, cabling or software can introduce new failure modes or invalidate previously verified redundancies.", "opts_pt": null, "opts_en": null}, {"id": 115, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "O que verifica um teste de \"blackout recovery\" na FMEA Trial?", "a_pt": "Se o sistema restaura energia e recupera a posição dentro de limites aceitáveis após uma perda total de energia.", "q_en": "What does a \"blackout recovery\" test verify in the FMEA Trial?", "a_en": "Whether the system restores power and recovers position within acceptable limits after a total loss of power.", "opts_pt": null, "opts_en": null}, {"id": 116, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "O que é a \"criticidade\" de um modo de falha na FMEA?", "a_pt": "A severidade combinada com a probabilidade de ocorrência, usada para priorizar quais falhas exigem mitigação.", "q_en": "What is the \"criticality\" of a failure mode in the FMEA?", "a_en": "The severity combined with the probability of occurrence, used to prioritize which failures require mitigation.", "opts_pt": null, "opts_en": null}, {"id": 117, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "Como a FMEA trata falhas de software no sistema de controle DP?", "a_pt": "Considera falhas de software como modos de falha potenciais, exigindo redundância de computadores DP e comutação automática.", "q_en": "How does the FMEA address software failures in the DP control system?", "a_en": "It treats software faults as potential failure modes, requiring redundant DP computers and automatic switchover.", "opts_pt": null, "opts_en": null}, {"id": 118, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "O que é \"common cause failure\" numa FMEA de DP?", "a_pt": "Falha que afeta múltiplos sistemas redundantes simultaneamente, anulando o benefício da redundância.", "q_en": "What is a \"common cause failure\" in a DP FMEA?", "a_en": "A failure that affects multiple redundant systems simultaneously, negating the benefit of redundancy.", "opts_pt": null, "opts_en": null}, {"id": 119, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "Qual documento resulta da FMEA e orienta a operação segura do navio?", "a_pt": "O relatório de FMEA e, na prática, a ASOG derivada dele.", "q_en": "What document results from the FMEA and guides the vessel's safe operation?", "a_en": "The FMEA report and, in practice, the ASOG derived from it.", "opts_pt": null, "opts_en": null}, {"id": 120, "level": "avancado", "cat": "FMEA e Provas de Redundância", "tipo": "qa", "q_pt": "Por que testes de FMEA incluem desarme intencional de geradores e thrusters?", "a_pt": "Para confirmar experimentalmente que a perda de cada componente não causa perda de posição, validando a redundância projetada.", "q_en": "Why do FMEA tests include the intentional shutdown of generators and thrusters?", "a_en": "To experimentally confirm that the loss of each component does not cause loss of position, validating the designed redundancy.", "opts_pt": null, "opts_en": null}, {"id": 121, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que é \"Worst Case Failure Design Intent\" (WCFDI)?", "a_pt": "A definição documentada da pior falha única que o sistema deve suportar sem perder posição, conforme a classe DP do navio.", "q_en": "What is \"Worst Case Failure Design Intent\" (WCFDI)?", "a_en": "The documented definition of the worst single failure that the system must withstand without losing position, according to the vessel's DP class.", "opts_pt": null, "opts_en": null}, {"id": 122, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que faz a análise de consequência em tempo real no sistema DP?", "a_pt": "Simula continuamente o efeito da pior falha crível e verifica se a capacidade residual ainda é suficiente para manter posição.", "q_en": "What does real-time consequence analysis do in the DP system?", "a_en": "It continuously simulates the effect of the worst credible failure and checks whether the residual capacity is still enough to hold position.", "opts_pt": null, "opts_en": null}, {"id": 123, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que ocorre quando o \"modo de consequência\" está ativado e uma falha crítica acontece?", "a_pt": "O sistema desliga automaticamente cargas/thrusters não essenciais para evitar sobrecarga e blackout, priorizando manter a posição.", "q_en": "What happens when \"consequence mode\" is active and a critical failure occurs?", "a_en": "The system automatically sheds non-essential loads and thrusters to prevent overload and blackout, prioritizing position keeping.", "opts_pt": null, "opts_en": null}, {"id": 124, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "Por que operar sem o modo de consequência ativado é arriscado em operações críticas?", "a_pt": "Uma falha real pode causar blackout total em vez de degradação controlada, resultando em perda total de posição.", "q_en": "Why is operating without consequence mode active risky in critical operations?", "a_en": "A real failure could cause a total blackout instead of controlled degradation, resulting in total loss of position.", "opts_pt": null, "opts_en": null}, {"id": 125, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que significa \"footprint\" na análise de consequência?", "a_pt": "A área de excursão de posição prevista após a pior falha, usada para verificar se a embarcação permanece dentro de limites seguros.", "q_en": "What does \"footprint\" mean in consequence analysis?", "a_en": "The predicted position excursion area after the worst failure, used to check whether the vessel stays within safe limits.", "opts_pt": null, "opts_en": null}, {"id": 126, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "Qual a diferença entre análise de consequência estática e dinâmica?", "a_pt": "A estática avalia a capacidade de empuxo remanescente teórica; a dinâmica simula o comportamento real do navio no tempo, incluindo a resposta transitória.", "q_en": "What is the difference between static and dynamic consequence analysis?", "a_en": "Static evaluates theoretical remaining thrust capacity; dynamic simulates the vessel's real behavior over time after the failure, including transient response.", "opts_pt": null, "opts_en": null}, {"id": 127, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que é o \"worst case single failure\" numa unidade DP Classe 3?", "a_pt": "A falha mais severa considerando também incêndio ou alagamento em um único compartimento, não apenas falha de um componente isolado.", "q_en": "What is the \"worst case single failure\" for a DP Class 3 unit?", "a_en": "The most severe failure considering also fire or flooding in a single compartment, not just an isolated component fault.", "opts_pt": null, "opts_en": null}, {"id": 128, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "Como a análise de consequência influencia os limites ambientais operacionais?", "a_pt": "Define até que condição de vento/corrente/onda a capacidade residual após a pior falha ainda é suficiente, estabelecendo os limites da ASOG.", "q_en": "How does consequence analysis influence operational environmental limits?", "a_en": "It defines up to what wind, current or wave condition the residual capacity after the worst failure is still sufficient, setting the ASOG limits.", "opts_pt": null, "opts_en": null}, {"id": 129, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "O que é o \"capability plot\" (gráfico polar de capacidade)?", "a_pt": "Gráfico que mostra a capacidade de empuxo disponível em cada direção sob diferentes condições de falha e ambientais.", "q_en": "What is the \"capability plot\"?", "a_en": "A chart showing the available thrust capacity in each direction under different failure and environmental conditions.", "opts_pt": null, "opts_en": null}, {"id": 130, "level": "avancado", "cat": "Análise de Consequência (WCFDI)", "tipo": "qa", "q_pt": "Por que a análise de consequência deve ser reavaliada durante a operação?", "a_pt": "Porque as condições ambientais e a configuração operacional mudam continuamente, exigindo verificação contínua da margem de segurança.", "q_en": "Why must consequence analysis be reassessed during the operation?", "a_en": "Because environmental conditions and the operational setup change continuously, requiring ongoing verification of the real safety margin.", "opts_pt": null, "opts_en": null}, {"id": 131, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "O que exige a notação DP(AA) da ABS em comparação com DP2?", "a_pt": "Requisitos equivalentes de redundância a DP2, sem perda de posição numa única falha, sob a classificação da American Bureau of Shipping.", "q_en": "What does the ABS DP(AA) notation require compared to DP2?", "a_en": "Redundancy requirements equivalent to DP2, with no loss of position on a single failure, under American Bureau of Shipping classification.", "opts_pt": null, "opts_en": null}, {"id": 132, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "Qual a diferença entre redundância física e redundância funcional?", "a_pt": "Física envolve duplicação real de equipamentos e separação de compartimentos; funcional envolve a capacidade de um sistema assumir a função de outro, mesmo sem duplicação total.", "q_en": "What is the difference between physical and functional redundancy?", "a_en": "Physical involves real duplication of equipment and compartment separation; functional involves one system's ability to take over another's function, even without full duplication.", "opts_pt": null, "opts_en": null}, {"id": 133, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "Por que sistemas DP Classe 3 exigem separação por mamparos A-60?", "a_pt": "Para garantir que um incêndio num compartimento não danifique o sistema redundante localizado em outro compartimento.", "q_en": "Why do DP Class 3 systems require A-60 bulkhead separation?", "a_en": "To ensure that a fire in one compartment does not damage the redundant system located in another compartment.", "opts_pt": null, "opts_en": null}, {"id": 134, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "O que é redundância de rede de comunicação de dados no sistema DP?", "a_pt": "Duplicação dos barramentos de comunicação entre sensores, computadores DP e propulsores, evitando perda de controle por falha de rede única.", "q_en": "What is data communication network redundancy in the DP system?", "a_en": "Duplication of the communication buses between sensors, DP computers and thrusters, preventing loss of control from a single network failure.", "opts_pt": null, "opts_en": null}, {"id": 135, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "Como a redundância se aplica ao computador de controle DP?", "a_pt": "Sistemas DP2/DP3 exigem no mínimo dois computadores DP independentes, com comutação automática em caso de falha de um deles.", "q_en": "How does redundancy apply to the DP control computer?", "a_en": "DP2/DP3 systems require at least two independent DP computers, with automatic switchover if one fails.", "opts_pt": null, "opts_en": null}, {"id": 136, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "O que verifica o teste de \"changeover\" entre computadores DP redundantes?", "a_pt": "Se a transferência de controle de um computador para outro ocorre sem perda de posição ou comando indevido aos propulsores.", "q_en": "What does the \"changeover\" test between redundant DP computers verify?", "a_en": "Whether control transfer from one computer to the other occurs without loss of position or improper thruster commands.", "opts_pt": null, "opts_en": null}, {"id": 137, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "Por que a redundância de sistemas de referência de posição deve incluir tecnologias diferentes?", "a_pt": "Para evitar que um mesmo tipo de erro ambiental afete todos os sensores simultaneamente.", "q_en": "Why must position reference system redundancy include different technologies?", "a_en": "To prevent the same type of environmental error from affecting all sensors simultaneously.", "opts_pt": null, "opts_en": null}, {"id": 138, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "O que é a \"independência\" de sensores exigida em DP3?", "a_pt": "Sensores devem ter fontes de energia, cabeamento e localização física independentes, evitando falha comum.", "q_en": "What is the sensor \"independence\" required in DP3?", "a_en": "Sensors must have independent power sources, cabling and physical location, avoiding common-cause failure.", "opts_pt": null, "opts_en": null}, {"id": 139, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "Como a redundância de geradores se relaciona à redundância de propulsores?", "a_pt": "Cada seção redundante de energia deve alimentar propulsores suficientes para manter posição, mesmo com a perda de uma seção.", "q_en": "How does generator redundancy relate to thruster redundancy?", "a_en": "Each redundant power section must be able to supply enough thrusters to hold position, even with the loss of one section.", "opts_pt": null, "opts_en": null}, {"id": 140, "level": "avancado", "cat": "Redundância e Notações de Classe", "tipo": "qa", "q_pt": "O que é o princípio de \"self-healing\" em sistemas DP modernos?", "a_pt": "A capacidade do sistema de detectar uma falha e reconfigurar automaticamente energia e alocação de empuxo sem intervenção manual imediata.", "q_en": "What is the \"self-healing\" principle in modern DP systems?", "a_en": "The system's ability to detect a failure and automatically reconfigure power and thrust allocation without immediate manual intervention.", "opts_pt": null, "opts_en": null}, {"id": 141, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "Qual fabricante produz a linha de sistemas DP \"K-Pos\"?", "a_pt": "Kongsberg Maritime, da Noruega.", "q_en": "Which manufacturer produces the \"K-Pos\" line of DP systems?", "a_en": "Kongsberg Maritime, from Norway.", "opts_pt": null, "opts_en": null}, {"id": 142, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "O que caracteriza a série Kongsberg K-Pos DP-21/22?", "a_pt": "Sistemas de controle DP redundantes, com arquitetura de computadores duplos/triplos, integrados a sensores e joystick, usados em Classe DP2/DP3.", "q_en": "What characterizes the Kongsberg K-Pos DP-21/22 series?", "a_en": "Redundant DP control systems with dual or triple computer architecture, integrated with sensors and joystick, used for DP2/DP3 class.", "opts_pt": null, "opts_en": null}, {"id": 143, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "Qual empresa historicamente desenvolveu sistemas DP sob a marca Alstom/Converteam, hoje parte da GE Power Conversion?", "a_pt": "A Alstom, posteriormente Converteam, adquirida pela General Electric (GE Power Conversion).", "q_en": "Which company historically developed DP systems under the Alstom/Converteam brand, now part of GE Power Conversion?", "a_en": "Alstom, later Converteam, acquired by General Electric (GE Power Conversion).", "opts_pt": null, "opts_en": null}, {"id": 144, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "Cite outro fabricante relevante de sistemas DP além de Kongsberg e GE/Alstom.", "a_pt": "Marine Technologies (MT), L3Harris (antigo L-3 SAM Electronics) e Praxis Automation, entre outros.", "q_en": "Name another relevant DP system manufacturer besides Kongsberg and GE/Alstom.", "a_en": "Marine Technologies (MT), L3Harris (formerly L-3 SAM Electronics) and Praxis Automation, among others.", "opts_pt": null, "opts_en": null}, {"id": 145, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "O que é o \"Joystick mode\" comum a sistemas DP comerciais?", "a_pt": "Modo manual assistido em que o operador controla diretamente o vetor de empuxo e rumo, com o computador ainda gerenciando a alocação entre propulsores.", "q_en": "What is \"Joystick mode\", common to commercial DP systems?", "a_en": "An assisted manual mode where the operator directly controls the thrust and heading vector, with the computer still managing allocation among thrusters.", "opts_pt": null, "opts_en": null}, {"id": 146, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "O que é o modo \"Auto Position\" (DP Auto)?", "a_pt": "Modo totalmente automático em que o sistema mantém posição e rumo no setpoint definido, sem intervenção manual contínua.", "q_en": "What is \"Auto Position\" (DP Auto) mode?", "a_en": "A fully automatic mode in which the system holds position and heading at the defined setpoint, without continuous manual input.", "opts_pt": null, "opts_en": null}, {"id": 147, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "Por que algumas unidades Classe 3 usam arquitetura \"triple modular\" redundante?", "a_pt": "Para permitir votação entre três computadores/sensores, aumentando a confiabilidade na detecção de falhas.", "q_en": "Why do some Class 3 units use a redundant \"triple modular\" architecture?", "a_en": "To allow voting between three computers or sensors, increasing reliability in fault detection.", "opts_pt": null, "opts_en": null}, {"id": 148, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "O que diferencia um simulador DP de treinamento (ex: Kongsberg K-Sim) de um sistema DP real?", "a_pt": "O simulador reproduz o comportamento do software e da interface real para treinamento e certificação, sem controlar propulsores físicos.", "q_en": "What distinguishes a training DP simulator (e.g. Kongsberg K-Sim) from a real DP system?", "a_en": "The simulator reproduces the behavior of the real software and interface for training and certification, without controlling actual physical thrusters.", "opts_pt": null, "opts_en": null}, {"id": 149, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "Por que a interoperabilidade entre fabricantes de sensores e sistemas DP é um desafio técnico?", "a_pt": "Protocolos proprietários e formatos de dados distintos podem exigir interfaces específicas para garantir comunicação confiável.", "q_en": "Why is interoperability between sensor and DP system manufacturers a technical challenge?", "a_en": "Proprietary protocols and different data formats may require specific interfaces to ensure reliable communication.", "opts_pt": null, "opts_en": null}, {"id": 150, "level": "avancado", "cat": "Arquiteturas de Sistemas Comerciais", "tipo": "qa", "q_pt": "O que é um Independent Joystick System (IJS) exigido como backup em algumas unidades DP3?", "a_pt": "Um sistema de joystick totalmente independente do sistema DP principal, usado como último recurso manual em caso de falha total.", "q_en": "What is an Independent Joystick System (IJS) required as backup on some DP3 units?", "a_en": "A joystick system fully independent of the main DP system, used as a last manual resort in the event of total system failure.", "opts_pt": null, "opts_en": null}, {"id": 151, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que é \"thrust allocation\" no controle DP?", "a_pt": "O algoritmo que distribui a força e o momento requeridos entre os propulsores disponíveis, otimizando eficiência e respeitando restrições.", "q_en": "What is \"thrust allocation\" in DP control?", "a_en": "The algorithm that distributes the required force and moment among the available thrusters, optimizing efficiency and respecting physical constraints.", "opts_pt": null, "opts_en": null}, {"id": 152, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "Por que a alocação de empuxo é um problema de otimização com restrições?", "a_pt": "Deve minimizar consumo/desgaste e evitar interação entre jatos, respeitando limites de potência e ângulos proibidos de cada propulsor.", "q_en": "Why is thrust allocation a constrained optimization problem?", "a_en": "It must minimize consumption and wear and avoid jet interaction, while respecting power limits and each thruster's forbidden angles.", "opts_pt": null, "opts_en": null}, {"id": 153, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que é \"power limitation\" na alocação de empuxo?", "a_pt": "Restrição imposta para reservar capacidade elétrica, evitando sobrecarga do sistema de energia durante manobras intensas.", "q_en": "What is \"power limitation\" in thrust allocation?", "a_en": "A restriction imposed to reserve electrical capacity, preventing overload of the power system during intense maneuvers.", "opts_pt": null, "opts_en": null}, {"id": 154, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que significa \"thrust bias\" aplicado deliberadamente por um DPO?", "a_pt": "Empuxo adicional constante aplicado numa direção específica para pré-tensionar ou favorecer determinada resposta, como durante reboque.", "q_en": "What does \"thrust bias\" deliberately applied by a DPO mean?", "a_en": "A constant additional thrust applied in a specific direction to pre-tension or favor a certain response, such as during towing.", "opts_pt": null, "opts_en": null}, {"id": 155, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "Por que a alocação deve considerar a interação hidrodinâmica entre propulsores próximos?", "a_pt": "Porque o fluxo de um propulsor pode reduzir a eficiência de outro nas proximidades, exigindo compensação matemática.", "q_en": "Why must allocation consider hydrodynamic interaction between nearby thrusters?", "a_en": "Because the flow from one thruster can reduce the efficiency of another nearby, requiring mathematical compensation.", "opts_pt": null, "opts_en": null}, {"id": 156, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que é uma \"singularidade\" no algoritmo de alocação com propulsores azimutais?", "a_pt": "Condição em que pequenas mudanças no comando resultam em grandes variações rápidas de ângulo, podendo causar desgaste mecânico ou instabilidade.", "q_en": "What is a \"singularity\" in the allocation algorithm with azimuth thrusters?", "a_en": "A condition in which small changes in command result in large, fast variations in angle, potentially causing mechanical wear or instability.", "opts_pt": null, "opts_en": null}, {"id": 157, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "Como o algoritmo de alocação trata a perda súbita de um propulsor?", "a_pt": "Redistribui instantaneamente a demanda de força e momento entre os propulsores restantes, dentro da capacidade disponível.", "q_en": "How does the allocation algorithm handle the sudden loss of a thruster?", "a_en": "It instantly redistributes the force and moment demand among the remaining thrusters, within available capacity.", "opts_pt": null, "opts_en": null}, {"id": 158, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que é a interação entre o PMS e o algoritmo de alocação de empuxo?", "a_pt": "Comunicação em tempo real que permite ao algoritmo respeitar a potência elétrica realmente disponível, evitando comandos que causem blackout.", "q_en": "What is the interaction between the PMS and the thrust allocation algorithm?", "a_en": "Real-time communication that lets the allocation algorithm respect the electrical power actually available, avoiding commands that would cause a blackout.", "opts_pt": null, "opts_en": null}, {"id": 159, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "Por que as zonas proibidas de propulsores azimutais mudam conforme a configuração operacional?", "a_pt": "Porque a proximidade de estruturas, outros propulsores ou linhas submersas pode variar, exigindo ajuste dinâmico dessas zonas.", "q_en": "Why do forbidden zones for azimuth thrusters change with the operational setup?", "a_en": "Because the proximity of structures, other thrusters or subsea lines can vary, requiring dynamic adjustment of those zones.", "opts_pt": null, "opts_en": null}, {"id": 160, "level": "avancado", "cat": "Alocação de Empuxo", "tipo": "qa", "q_pt": "O que é \"rate limiting\" aplicado a comandos de propulsores?", "a_pt": "Limitação da velocidade de variação do comando para evitar desgaste mecânico e instabilidade dinâmica.", "q_en": "What is \"rate limiting\" applied to thruster commands?", "a_en": "A limit on how fast a command can change, to prevent mechanical wear and dynamic instability.", "opts_pt": null, "opts_en": null}, {"id": 161, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que é \"drift-off\" em DP?", "a_pt": "Perda gradual de posição, geralmente causada por perda de empuxo, sem comando indevido de propulsores.", "q_en": "What is \"drift-off\" in DP?", "a_en": "A gradual loss of position, usually caused by loss of thrust, without an improper thruster command.", "opts_pt": null, "opts_en": null}, {"id": 162, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que é \"drive-off\" em DP?", "a_pt": "Movimento indesejado e geralmente rápido da embarcação, causado por comando incorreto do sistema.", "q_en": "What is \"drive-off\" in DP?", "a_en": "An unwanted, usually fast, movement of the vessel caused by an incorrect system command.", "opts_pt": null, "opts_en": null}, {"id": 163, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "Qual falha é geralmente mais perigosa em termos de tempo de resposta: drift-off ou drive-off?", "a_pt": "Drive-off, pois o movimento pode ser rápido e inesperado, exigindo intervenção imediata do DPO.", "q_en": "Which failure is generally more dangerous in terms of response time: drift-off or drive-off?", "a_en": "Drive-off, since the movement can be fast and unexpected, requiring immediate action from the DPO.", "opts_pt": null, "opts_en": null}, {"id": 164, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "Qual é a primeira ação recomendada ao DPO diante de um drive-off?", "a_pt": "Assumir controle manual (joystick) ou zerar os propulsores imediatamente para deter o movimento indevido.", "q_en": "What is the first recommended action for the DPO facing a drive-off?", "a_en": "Take manual (joystick) control or stop and zero the thrusters immediately to halt the improper movement.", "opts_pt": null, "opts_en": null}, {"id": 165, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que costuma causar um evento de drive-off relacionado a sensores?", "a_pt": "Falha ou erro de um sensor não detectado, aceito pelo sistema de votação, gerando um comando de correção incorreto.", "q_en": "What usually causes a sensor-related drive-off event?", "a_en": "An undetected sensor fault or error accepted by the voting system, generating an incorrect correction command.", "opts_pt": null, "opts_en": null}, {"id": 166, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que é \"loss of position\" (LOP) em procedimentos DP?", "a_pt": "Situação em que a embarcação excede os limites de excursão de posição/rumo definidos como seguros para a operação.", "q_en": "What is \"loss of position\" (LOP) in DP procedures?", "a_en": "A situation where the vessel exceeds the position or heading excursion limits defined as safe for the ongoing operation.", "opts_pt": null, "opts_en": null}, {"id": 167, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "Como a resposta a um blackout total difere da resposta a uma perda parcial de energia?", "a_pt": "No blackout total é preciso religar sequencialmente os geradores e reiniciar o sistema; na perda parcial, o sistema redistribui a carga entre os recursos restantes.", "q_en": "How does the response to a total blackout differ from the response to a partial power loss?", "a_en": "In a total blackout, generators must be sequentially restarted and the system restarted in a controlled manner; in a partial loss, the system tries to automatically redistribute load among the remaining resources.", "opts_pt": null, "opts_en": null}, {"id": 168, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que é \"blackout recovery time\" e por que é crítico?", "a_pt": "O tempo necessário para restaurar energia e retomar o controle de posição após um blackout; quanto maior, maior o risco de colisão ou dano.", "q_en": "What is \"blackout recovery time\" and why is it critical?", "a_en": "The time needed to restore power and resume position control after a blackout; the longer it is, the greater the risk of collision or damage.", "opts_pt": null, "opts_en": null}, {"id": 169, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "Por que um drive-off pode ocorrer mesmo em sistemas DP2/DP3 com redundância completa?", "a_pt": "Porque a redundância protege contra falhas de hardware, mas erros de software ou de sensor não detectados ainda podem gerar comandos incorretos.", "q_en": "Why can a drive-off occur even in DP2/DP3 systems with full redundancy?", "a_en": "Because redundancy protects against hardware failures, but undetected software or sensor errors can still generate incorrect commands.", "opts_pt": null, "opts_en": null}, {"id": 170, "level": "avancado", "cat": "Falhas Críticas: Drift-off, Drive-off e Blackout", "tipo": "qa", "q_pt": "O que é o procedimento de \"emergency disconnect\" associado à perda de posição em perfuração?", "a_pt": "Procedimento para desconectar rapidamente o riser/BOP antes que a excursão de posição exceda os limites seguros.", "q_en": "What is the \"emergency disconnect\" procedure associated with loss of position in drilling?", "a_en": "A procedure to quickly disconnect the riser and BOP before the position excursion exceeds safe limits.", "opts_pt": null, "opts_en": null}, {"id": 171, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que é \"sensor voting\" em DP?", "a_pt": "Processo pelo qual o sistema compara leituras de sensores redundantes e decide quais usar, descartando leituras discrepantes.", "q_en": "What is \"sensor voting\" in DP?", "a_en": "The process by which the system compares readings from redundant sensors and decides which to use, discarding discrepant readings.", "opts_pt": null, "opts_en": null}, {"id": 172, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que é \"median filtering\" na votação de sensores de posição?", "a_pt": "Uso do valor mediano entre múltiplos sensores para reduzir a influência de leituras espúrias de um único sensor.", "q_en": "What is \"median filtering\" in position sensor voting?", "a_en": "Using the median value among multiple sensors to reduce the influence of a spurious reading from a single sensor.", "opts_pt": null, "opts_en": null}, {"id": 173, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "Por que a simples média entre sensores pode ser perigosa?", "a_pt": "Porque um sensor com erro grande pode distorcer significativamente a média, mesmo que os outros sensores estejam corretos.", "q_en": "Why can a simple average between sensors be dangerous?", "a_en": "Because a sensor with a large error can significantly distort the average, even if the other sensors are correct.", "opts_pt": null, "opts_en": null}, {"id": 174, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que é \"sensor weighting\" dinâmico no sistema DP?", "a_pt": "Ajuste automático da confiança atribuída a cada sensor com base em sua consistência histórica e qualidade de sinal em tempo real.", "q_en": "What is dynamic \"sensor weighting\" in the DP system?", "a_en": "Automatic adjustment of the confidence given to each sensor based on its historical consistency and real-time signal quality.", "opts_pt": null, "opts_en": null}, {"id": 175, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que o operador deve verificar ao receber um alarme de \"reference position rejected\"?", "a_pt": "Qual sensor foi excluído da votação, o motivo, e se a redundância restante ainda é suficiente para a operação.", "q_en": "What should the operator check upon receiving a \"reference position rejected\" alarm?", "a_en": "Which sensor was excluded from voting, the reason why, and whether the remaining redundancy is still sufficient for the operation.", "opts_pt": null, "opts_en": null}, {"id": 176, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "Como sensores de tecnologias distintas melhoram a robustez da votação?", "a_pt": "Reduzem a chance de erro comum, já que fontes diferentes tendem a falhar por causas independentes.", "q_en": "How do sensors of different technologies improve voting robustness?", "a_en": "They reduce the chance of a common error, since different sources tend to fail from independent causes.", "opts_pt": null, "opts_en": null}, {"id": 177, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que é \"sensor drift\" e como afeta a votação a longo prazo?", "a_pt": "Um desvio gradual e lento na leitura de um sensor, que pode não ser detectado se todos os sensores derivarem de forma semelhante.", "q_en": "What is \"sensor drift\" and how does it affect voting over the long term?", "a_en": "A gradual, slow deviation in a sensor's reading, which may go undetected if all sensors drift in a similar way.", "opts_pt": null, "opts_en": null}, {"id": 178, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "Por que a votação de giroscópios é geralmente mais simples que a de posição?", "a_pt": "Porque giroscópios modernos têm baixa taxa de erro independente e alta precisão relativa, facilitando identificar divergências.", "q_en": "Why is gyrocompass voting generally simpler than position voting?", "a_en": "Because modern gyrocompasses have a low rate of independent error and high relative accuracy, making divergences easier to identify as a clear fault.", "opts_pt": null, "opts_en": null}, {"id": 179, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "O que é a lógica \"2 out of 3\" na votação de sensores críticos?", "a_pt": "Com três sensores redundantes, o valor aceito é o concordante entre pelo menos dois, descartando o terceiro se divergente.", "q_en": "What is \"2 out of 3\" logic in critical sensor voting?", "a_en": "With three redundant sensors, the accepted value is the one agreed upon by at least two of them, discarding the third if it diverges.", "opts_pt": null, "opts_en": null}, {"id": 180, "level": "avancado", "cat": "Gestão e Votação de Sensores Redundantes", "tipo": "qa", "q_pt": "Como a perda de todos os sistemas de referência de posição deve ser tratada pelo DPO?", "a_pt": "Como uma emergência (Loss of Position Reference), exigindo transição imediata para controle manual e ativação dos procedimentos de contingência.", "q_en": "How should the loss of all position reference systems be handled by the DPO?", "a_en": "As an emergency (Loss of Position Reference), requiring an immediate transition to manual control and activation of contingency procedures.", "opts_pt": null, "opts_en": null}, {"id": 181, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Que tipo de falha é mais citado em investigações de perda de posição em unidades de perfuração?", "a_pt": "Falhas combinadas de sensores de referência de posição associadas a erro humano ou falha de energia não detectada a tempo.", "q_en": "What type of failure is most cited in investigations of loss of position on drilling units?", "a_en": "Combined failures of position reference sensors associated with human error or an undetected power failure.", "opts_pt": null, "opts_en": null}, {"id": 182, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Por que investigações de incidentes de DP recomendam melhorias em treinamento além de mudanças técnicas?", "a_pt": "Porque muitos eventos envolvem falha do operador em reconhecer degradação gradual do sistema antes que se tornasse crítica.", "q_en": "Why do DP incident investigations recommend training improvements in addition to technical changes?", "a_en": "Because many events involve the operator failing to recognize gradual degradation of the system before it became critical.", "opts_pt": null, "opts_en": null}, {"id": 183, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "O que geralmente motiva a revisão de uma FMEA após um incidente real?", "a_pt": "A descoberta de um modo de falha ou interação entre sistemas que não havia sido previsto na análise original.", "q_en": "What usually prompts the review of an FMEA after a real incident?", "a_en": "The discovery of a failure mode or system interaction that had not been foreseen in the original analysis.", "opts_pt": null, "opts_en": null}, {"id": 184, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Por que a indústria adotou a certificação obrigatória de DPO após diversos incidentes?", "a_pt": "Para padronizar o nível mínimo de competência e experiência prática exigido para operar sistemas DP com segurança.", "q_en": "Why did the industry adopt mandatory DPO certification after several incidents?", "a_en": "To standardize the minimum level of competence and practical experience required to safely operate DP systems.", "opts_pt": null, "opts_en": null}, {"id": 185, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "O que caracteriza um \"near miss\" em operações de DP?", "a_pt": "Um evento em que a margem de segurança foi significativamente reduzida sem resultar em excursão real de posição.", "q_en": "What characterizes a \"near miss\" in DP operations?", "a_en": "An event in which the safety margin was significantly reduced without resulting in an actual position excursion.", "opts_pt": null, "opts_en": null}, {"id": 186, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Por que transferências de carga entre embarcação e plataforma são de alto risco em DP?", "a_pt": "A proximidade física reduzida aumenta a consequência de qualquer perda de posição, mesmo pequena.", "q_en": "Why are cargo transfers between a vessel and a platform high risk in DP?", "a_en": "The reduced physical proximity increases the consequence of any loss of position, even a small one.", "opts_pt": null, "opts_en": null}, {"id": 187, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "O que motiva a exigência de revisão da ASOG antes de operações críticas?", "a_pt": "Garantir que toda a equipe compreenda os limites operacionais, os riscos e os procedimentos de contingência antes do início.", "q_en": "What drives the requirement to review the ASOG before critical operations?", "a_en": "Ensuring the whole team understands the operating limits, the risks and the contingency procedures before starting.", "opts_pt": null, "opts_en": null}, {"id": 188, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Por que a fadiga do operador é um fator de risco reconhecido em incidentes de DP?", "a_pt": "Reduz a capacidade de monitorar continuamente alarmes e tendências sutis de degradação do sistema.", "q_en": "Why is operator fatigue a recognized risk factor in DP incidents?", "a_en": "It reduces the ability to continuously monitor alarms and subtle trends of system degradation.", "opts_pt": null, "opts_en": null}, {"id": 189, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "O que verifica uma auditoria periódica de \"DP Trials\"?", "a_pt": "Se a FMEA e a capacidade de redundância da embarcação continuam válidas na prática, geralmente numa verificação anual.", "q_en": "What does a periodic \"DP Trials\" audit verify?", "a_en": "Whether the vessel's FMEA and redundancy capability remain valid in practice, usually checked annually.", "opts_pt": null, "opts_en": null}, {"id": 190, "level": "avancado", "cat": "Estudos de Caso e Lições Aprendidas", "tipo": "qa", "q_pt": "Por que a comunicação inadequada entre a ponte e a sala de máquinas é citada em incidentes de DP?", "a_pt": "Retarda a identificação da causa raiz de uma falha e a resposta coordenada necessária para evitar perda total de posição.", "q_en": "Why is inadequate communication between the bridge and the engine room cited in DP incidents?", "a_en": "It delays identifying the root cause of a failure and the coordinated response needed to prevent total loss of position.", "opts_pt": null, "opts_en": null}, {"id": 191, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que representa o parâmetro \"força de vento\" no simulador DP?", "a_pt": "A intensidade e direção do vento aplicada ao modelo, afetando diretamente a força que os propulsores precisam compensar.", "q_en": "What does the \"wind force\" parameter represent in the DP simulator?", "a_en": "The intensity and direction of wind applied to the model, directly affecting the force the thrusters must compensate.", "opts_pt": null, "opts_en": null}, {"id": 192, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que representa o parâmetro \"corrente marítima\" no simulador?", "a_pt": "Uma força direcional constante que simula o efeito da corrente sobre o casco.", "q_en": "What does the \"sea current\" parameter represent in the simulator?", "a_en": "A constant directional force simulating the effect of current on the hull.", "opts_pt": null, "opts_en": null}, {"id": 193, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que simula o cenário \"perda de thruster\"?", "a_pt": "O desligamento súbito de um propulsor durante a operação, testando a redistribuição de empuxo.", "q_en": "What does the \"thruster loss\" scenario simulate?", "a_en": "The sudden shutdown of a thruster during the operation, testing the redistribution of thrust.", "opts_pt": null, "opts_en": null}, {"id": 194, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que simula o cenário \"blackout parcial\"?", "a_pt": "A perda de uma seção do sistema de energia, reduzindo a capacidade total de propulsão disponível.", "q_en": "What does the \"partial blackout\" scenario simulate?", "a_en": "The loss of one section of the power system, reducing the total available propulsion capacity.", "opts_pt": null, "opts_en": null}, {"id": 195, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que simula o cenário \"falha de sensor de posição\"?", "a_pt": "A degradação ou perda de um sistema de referência, testando a resposta da votação e do operador.", "q_en": "What does the \"position sensor failure\" scenario simulate?", "a_en": "The degradation or loss of a reference system, testing the response of voting and of the operator.", "opts_pt": null, "opts_en": null}, {"id": 196, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que diferencia o \"modelo Kongsberg\" do \"modelo genérico ABB/GE\" no simulador?", "a_pt": "Diferenças na interface, na lógica de alocação de empuxo e na apresentação de alarmes entre arquiteturas comerciais distintas.", "q_en": "What differentiates the \"Kongsberg model\" from the \"generic ABB/GE model\" in the simulator?", "a_en": "Differences in interface, thrust allocation logic and alarm presentation between distinct commercial architectures.", "opts_pt": null, "opts_en": null}, {"id": 197, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que é o \"índice de capacidade residual\" mostrado após uma falha simulada?", "a_pt": "O percentual da capacidade de empuxo total ainda disponível para manter posição após o evento simulado.", "q_en": "What is the \"residual capacity index\" shown after a simulated failure?", "a_en": "The percentage of total thrust capacity still available to hold position after the simulated event.", "opts_pt": null, "opts_en": null}, {"id": 198, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "Por que o simulador inclui um gráfico polar de capacidade?", "a_pt": "Para visualizar em quais direções a embarcação ainda tem capacidade suficiente de manter posição sob as condições e falhas simuladas.", "q_en": "Why does the simulator include a polar capability chart?", "a_en": "To visualize in which directions the vessel still has enough capacity to hold position under the simulated conditions and failures.", "opts_pt": null, "opts_en": null}, {"id": 199, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "O que representa o \"raio de tolerância\" na tela do simulador?", "a_pt": "O limite aceitável de excursão de posição ao redor do setpoint antes de ser considerado perda de posição.", "q_en": "What does the \"tolerance radius\" on the simulator screen represent?", "a_en": "The acceptable limit of position excursion around the setpoint before it is considered a loss of position.", "opts_pt": null, "opts_en": null}, {"id": 200, "level": "avancado", "cat": "Cenários de Simulação", "tipo": "qa", "q_pt": "Qual o objetivo pedagógico do modo \"cenário combinado\"?", "a_pt": "Treinar o operador a tomar decisões sob múltiplas falhas/condições simultâneas, como em situações reais de alto risco.", "q_en": "What is the teaching goal of the \"combined scenario\" mode?", "a_en": "To train the operator to make decisions under multiple simultaneous failures and conditions, similar to real high-risk situations.", "opts_pt": null, "opts_en": null}]</script>
+<script id="data-phon" type="application/json">{"a": "ei", "an": "ãn", "and": "end", "are": "ár", "as": "éz", "at": "ét", "be": "bi", "before": "bi-fór", "between": "bi-tuín", "by": "bai", "can": "kén", "case": "kêis", "close": "clôus", "do": "du", "does": "dâz", "during": "diú-ring", "e": "i", "for": "fór", "from": "from", "g": "dji", "ge": "dji-í", "how": "háu", "if": "if", "in": "in", "is": "iz", "it": "it", "main": "mêin", "mean": "min", "more": "mór", "must": "mâst", "name": "nêim", "near": "nír", "nearby": "nír-bai", "need": "nid", "no": "nôu", "not": "nót", "of": "óv", "off": "óf", "on": "on", "one": "uân", "or": "ór", "over": "ô-vêr", "real": "ríl", "should": "chúd", "some": "sâm", "stand": "sténd", "than": "dén", "that": "dét", "the": "dâ", "these": "díz", "this": "dis", "those": "dôuz", "three": "tri", "time": "táim", "to": "tu", "type": "táip", "upon": "â-pón", "use": "iúz", "used": "iúzd", "usually": "iú-djiu-â-li", "what": "uót", "when": "uén", "which": "uítch", "why": "uai", "with": "uít", "without": "uít-áut", "accelerating": "éc-sé-lê-rêi-ting", "acoustic": "â-cús-tic", "acronym": "é-crâ-nim", "active": "éc-tiv", "activity": "éc-tí-vi-ti", "adaptive": "â-dép-tiv", "after": "áf-têr", "algorithm": "él-gâ-ri-dâm", "allocation": "é-lô-kêi-chân", "alarm": "â-lárm", "alstom": "ál-stâm", "analysis": "â-né-li-sis", "another": "â-nâ-dêr", "applied": "â-plaid", "asog": "êi-sóg", "auto": "ó-tôu", "autopilot": "ó-tô-pai-lât", "autr": "ó-têr", "autro": "ó-trô", "azimuth": "é-zi-mât", "backup": "béc-âp", "bias": "bái-âs", "blackout": "blék-aut", "blocker": "blâ-kêr", "bow": "báu", "bridge": "bridj", "bulkhead": "bâlk-héd", "bus": "bâs", "cable": "kêi-bâl", "capability": "kêi-pâ-bí-li-ti", "capacity": "kâ-pé-si-ti", "cargo": "cár-gô", "certification": "sêr-ti-fi-kêi-chân", "challenge": "tché-lêndj", "change": "tchêindj", "changeover": "tchêindj-ô-vêr", "characterizes": "ké-râc-tê-raiz-iz", "chart": "tchárt", "check": "tchéc", "cited": "sái-tid", "class": "clés", "classic": "clé-sic", "classification": "clé-si-fi-kêi-chân", "clear": "clír", "combined": "câm-báind", "command": "câ-ménd", "commands": "câ-méndz", "common": "kó-mân", "communication": "câ-miu-ni-kêi-chân", "company": "kâm-pâ-ni", "comparing": "câm-pé-ring", "compensate": "kóm-pên-sêit", "compensating": "kóm-pên-sêi-ting", "computer": "câm-piú-têr", "conditions": "kân-dí-chânz", "consequence": "kón-si-kuêns", "consider": "kân-sí-dêr", "constrained": "kâns-trêind", "context": "kón-têxt", "contra": "kón-trâ", "control": "kân-trôul", "controller": "kân-trôu-lêr", "conventional": "kân-vén-châ-nâl", "conversion": "kân-vêr-chân", "converteam": "kân-vêr-tim", "coupled": "kâ-pâld", "critical": "crí-ti-câl", "criticality": "cri-ti-ké-li-ti", "crp": "si-ár-pí", "current": "kâ-rênt", "cyscan": "sái-scén", "dangerous": "dêin-djê-râs", "data": "dêi-tâ", "degradation": "dé-grâ-dêi-chân", "deliberately": "di-lí-bâ-rêit-li", "design": "di-záin", "develop": "di-vé-lâp", "developed": "di-vé-lâpt", "dgps": "di-dji-pi-és", "difference": "dí-fê-rêns", "different": "dí-fê-rênt", "differentiates": "di-fê-rén-chi-êits", "dip": "díp", "disconnect": "dis-câ-néct", "distinguishes": "dis-tín-guich-iz", "dive": "dáiv", "diving": "dái-ving", "dnv": "di-én-vi", "drift": "drift", "drilling": "drí-ling", "drillship": "dríl-chip", "drive": "dráiv", "drives": "dráivz", "dsv": "di-és-vi", "dynamic": "dai-né-mic", "dynpos": "dáin-pos", "electrical": "i-léc-tri-câl", "electronics": "i-léc-trâ-nics", "element": "é-lâ-mênt", "elements": "é-lâ-mênts", "emergency": "i-mêr-djên-si", "engine": "én-djin", "enough": "i-nâf", "ensure": "in-chúr", "environment": "in-vái-rân-mênt", "environmental": "in-vái-rân-mén-tâl", "equipment": "i-kuíp-mênt", "essential": "i-sén-châl", "estimate": "és-ti-mêit", "estimation": "és-ti-mêi-chân", "even": "í-vên", "event": "i-vént", "evaluate": "i-vé-liu-êit", "excursion": "ics-kêr-jân", "facing": "fêi-sing", "factor": "féc-tôr", "fanbeam": "fén-bim", "fast": "fést", "fatigue": "fâ-tíg", "failure": "féil-iâr", "failures": "féil-iârz", "feedforward": "fid-fór-uêrd", "filter": "fíl-têr", "filtering": "fíl-tê-ring", "first": "fêrst", "fixed": "fícst", "fmea": "éf-êm-i-êi", "footprint": "fút-print", "forbidden": "fôr-bí-dên", "force": "fórs", "forces": "fór-siz", "fpso": "éf-pi-és-ô", "full": "fúl", "function": "fânk-chân", "functional": "fânk-châ-nâl", "generally": "djé-nê-râ-li", "generation": "djé-nê-rêi-chân", "generator": "djé-nê-rêi-tôr", "generators": "djé-nê-rêi-tôrz", "generic": "djâ-né-ric", "goal": "gôul", "green": "grin", "guide": "gáid", "guideline": "gáid-lain", "gyrocompass": "djái-rô-câm-pâs", "handling": "hénd-ling", "happens": "hé-pênz", "harmful": "hárm-fâl", "heading": "hé-ding", "healing": "hí-ling", "high": "hai", "historically": "his-tó-ri-câ-li", "hpr": "êitch-pi-ár", "hull": "hâl", "hydroacoustic": "hai-drô-â-cús-tic", "hydrodynamic": "hai-drô-dai-né-mic", "identified": "ai-dén-ti-faid", "ijs": "ai-dji-és", "imo": "ai-êm-ôu", "improve": "im-prúv", "improvements": "im-prúv-mênts", "inadequate": "i-né-di-kuêit", "incident": "ín-si-dênt", "incidents": "ín-si-dênts", "include": "in-clúd", "increases": "in-crí-siz", "independence": "in-di-pén-dêns", "independent": "in-di-pén-dênt", "index": "ín-décs", "indicate": "ín-di-kêit", "industry": "ín-dâs-tri", "influence": "ín-flu-êns", "instead": "ins-téd", "intent": "in-tént", "interaction": "in-tê-réc-chân", "interferes": "in-tê-fírz", "international": "in-têr-né-châ-nâl", "interoperability": "in-têr-ó-pê-râ-bí-li-ti", "investigation": "in-vés-ti-guêi-chân", "investigations": "in-vés-ti-guêi-chânz", "joystick": "djói-stik", "k": "kêi", "kalman": "kál-mân", "kinematic": "ki-nê-mé-tic", "know": "nôu", "kongsberg": "kóngs-bêrg", "laser": "lêi-zêr", "lay": "lêi", "laying": "lêi-ing", "limit": "lí-mit", "limitation": "li-mi-têi-chân", "limiting": "lí-mi-ting", "limits": "lí-mits", "line": "lain", "load": "lôud", "log": "lóg", "logic": "ló-djic", "long": "lóng", "loop": "lup", "loss": "lós", "low": "lôu", "maintain": "mêin-têin", "management": "mé-nâdj-mênt", "mandatory": "mén-dâ-tô-ri", "manufacturer": "mé-niu-féc-tchê-rêr", "manufacturers": "mé-niu-féc-tchê-rêrz", "many": "mé-ni", "margin": "már-djin", "maritime": "mé-ri-taim", "mathematical": "mé-tâ-mé-ti-câl", "median": "mí-di-ân", "microwave": "mai-crô-uêiv", "miss": "mis", "mismatch": "mis-métch", "mode": "môud", "model": "mó-dâl", "modern": "mó-dêrn", "modifications": "mó-di-fi-kêi-chânz", "modular": "mó-diu-lâr", "motion": "mô-chân", "movement": "múv-mênt", "moving": "mú-ving", "mpc": "êm-pi-si", "mru": "êm-ár-iú", "multiple": "mâl-ti-pâl", "network": "nét-uêrk", "noise": "nóiz", "noisy": "nói-zi", "normally": "nór-mâ-li", "notation": "nô-têi-chân", "noticing": "nô-ti-sing", "objective": "âb-djéc-tiv", "obstruction": "âbs-trâc-chân", "occur": "â-kêr", "occurs": "â-kêrz", "offshore": "óf-chór", "operate": "ó-pê-rêit", "operates": "ó-pê-rêits", "operating": "ó-pê-rêi-ting", "operation": "o-pê-rêi-chân", "operational": "o-pê-rêi-châ-nâl", "operations": "o-pê-rêi-chânz", "operator": "ó-pê-rêi-tôr", "optical": "óp-ti-câl", "optimization": "óp-ti-mi-zêi-chân", "order": "ór-dêr", "other": "â-dêr", "overcurrent": "ô-vêr-kâ-rênt", "overload": "ô-vêr-lôud", "parameter": "pâ-ré-mi-têr", "part": "párt", "partial": "pár-châl", "pass": "pés", "periodic": "pi-ri-ó-dic", "physical": "fí-zi-câl", "pid": "pi-ai-di", "pipe": "páip", "platform": "plét-fórm", "platforms": "plét-fórmz", "plot": "plót", "point": "point", "polar": "pô-lâr", "pos": "póz", "position": "pô-zí-chân", "positioning": "pô-zí-châ-ning", "power": "pá-uêr", "practice": "pré-tis", "precision": "pri-sí-jân", "predictive": "pri-díc-tiv", "preferred": "pri-fêrd", "principle": "prín-si-pâl", "problem": "pró-blâm", "procedure": "prô-si-djêr", "procedures": "prô-si-djêrz", "produces": "prâ-diú-siz", "propellers": "prâ-pé-lêrz", "protection": "prâ-téc-chân", "proving": "prú-ving", "psv": "pi-és-vi", "radius": "rêi-di-âs", "rate": "rêit", "reached": "ritcht", "reassessed": "ri-â-séssed", "receiving": "ri-sí-ving", "recognized": "ré-câg-naizd", "recommend": "ré-câ-ménd", "recommended": "ré-câ-mén-did", "recovery": "ri-kâ-vê-ri", "redundancy": "ri-dân-dân-si", "redundant": "ri-dân-dânt", "reference": "ré-fê-rêns", "rejected": "ri-djéc-tid", "relate": "ri-lêit", "related": "ri-lêi-tid", "relative": "ré-lâ-tiv", "relevant": "ré-lâ-vânt", "represent": "ré-pri-zént", "represents": "ré-pri-zénts", "require": "ri-kuáir", "required": "ri-kuáird", "requirement": "ri-kuáir-mênt", "requirements": "ri-kuáir-mênts", "requires": "ri-kuáirz", "residual": "ri-zí-diu-âl", "respond": "ris-pónd", "response": "ris-póns", "responsibility": "ris-pân-si-bí-li-ti", "result": "ri-zâlt", "results": "ri-zâlts", "retractable": "ri-tréc-tâ-bâl", "review": "ri-viú", "reviewed": "ri-viúd", "risk": "risk", "risky": "ris-ki", "robustness": "rô-bâst-nes", "role": "rôul", "room": "rum", "rotating": "rô-têi-ting", "rtk": "ár-ti-kêi", "safe": "sêif", "safely": "sêif-li", "safety": "sêif-ti", "scenario": "si-ná-ri-ô", "screen": "scrin", "sea": "si", "self": "sélf", "semi": "sé-mi", "sensor": "sén-sôr", "sensors": "sén-sôrz", "separation": "sé-pâ-rêi-chân", "series": "sí-riz", "setpoint": "sét-point", "setup": "sét-âp", "several": "sé-vê-râl", "shallow": "ché-lôu", "sharing": "chê-ring", "shown": "chôun", "shows": "chôuz", "shutdown": "chât-dáun", "signal": "síg-nâl", "significantly": "sig-ní-fi-cânt-li", "simple": "sím-pâl", "simpler": "sím-plêr", "simulate": "sí-miu-lêit", "simulated": "sí-miu-lêi-tid", "simulator": "sí-miu-lêi-tôr", "single": "sín-gâl", "singularity": "sin-guiu-lé-ri-ti", "situation": "si-tiu-êi-chân", "software": "sóft-uêr", "specific": "spâ-sí-fic", "split": "split", "standardize": "stén-dâr-daiz", "state": "stêit", "static": "sté-tic", "station": "stêi-chân", "status": "stêi-tâs", "stern": "stêrn", "strategy": "stré-tâ-dji", "structure": "strâc-tchêr", "submersible": "sâb-mêr-si-bâl", "sudden": "sâ-dên", "suddenly": "sâ-dên-li", "suffic": "sâ-fích", "sufficient": "sâ-fí-chênt", "supervision": "su-pêr-ví-jân", "supply": "sâ-plái", "support": "sâ-pórt", "suspension": "sâs-pén-chân", "switchover": "suítch-ô-vêr", "system": "sís-têm", "systems": "sís-têmz", "teaching": "tí-tching", "technical": "téc-ni-câl", "technique": "téc-nic", "technologies": "tec-nó-lâ-djiz", "technology": "tec-nó-lâ-dji", "tension": "tén-chân", "term": "têrm", "terms": "têrmz", "test": "tést", "tests": "tésts", "theory": "tí-â-ri", "through": "trú", "thrust": "trâst", "thruster": "trás-têr", "thrusters": "trás-têrz", "together": "tâ-gué-dêr", "tolerance": "tó-lê-râns", "total": "tô-tâl", "towing": "tôu-ing", "trade": "trêid", "training": "trêi-ning", "transfer": "trénsfêr", "transfers": "trénsfêrz", "transponder": "trénsp-ón-dêr", "triple": "trí-pâl", "trip": "trip", "trips": "trips", "tug": "tâg", "tunnel": "tâ-nêl", "typical": "tí-pi-câl", "typically": "tí-pi-câ-li", "unable": "â-nêi-bâl", "under": "ân-dêr", "undetected": "ân-di-téc-tid", "unit": "iú-nit", "units": "iú-nits", "ups": "iú-pi-és", "using": "iú-zing", "validating": "vé-li-dêi-ting", "value": "vé-liu", "variations": "vé-ri-êi-chânz", "verify": "vé-ri-fai", "vertical": "vêr-ti-câl", "vessel": "vé-sâl", "vessel's": "vé-sâlz", "vessels": "vé-sâlz", "voltage": "vôul-tidj", "voting": "vôu-ting", "vrs": "vi-ár-és", "watch": "uótch", "water": "uó-têr", "waters": "uó-têrz", "wave": "uêiv", "wcfdi": "dâ-biú-si-éf-di-ai", "weighting": "uêi-ting", "while": "uail", "who": "hu", "wind": "uínd", "wire": "uáir", "work": "uêrk", "worst": "uêrst", "would": "úd", "yellow": "ié-lôu", "zone": "zôun", "zones": "zôunz", "z": "zi", "joystick's": "djói-stiks", "controller's": "cân-trôu-lêrz", "dpo's": "di-pi-ôuz", "asog's": "êi-sógz", "handled": "hén-dâld", "handle": "hén-dâl", "abs": "êi-bi-és", "aa": "êi-êi", "abb": "êi-bi-bi", "absolute": "éb-sâ-lut", "across": "â-cros", "action": "éc-chân", "activated": "éc-ti-vêi-tid", "addition": "â-dí-chân", "address": "â-drés", "adopt": "â-dópt", "advantage": "éd-vén-tidj", "affect": "â-féct", "ahts": "êi-êitch-ti-és", "alert": "â-lêrt", "all": "ól", "anchor": "én-kôr", "anchoring": "én-kô-ring", "apply": "â-plái", "architecture": "ár-ki-téc-tchêr", "artemis": "ár-tê-mis", "associated": "â-sô-chi-êi-tid", "audit": "ó-dit", "automatically": "ó-tâ-mé-ti-câ-li", "average": "é-vê-rêidj", "basic": "bêi-sic", "being": "bí-ing", "besides": "bi-sáidz", "beyond": "bi-iónd", "brand": "brénd", "cause": "kôz", "caused": "kôzd", "causes": "kô-ziz", "changes": "tchêin-djiz", "classes": "clé-siz", "commercial": "câ-mêr-châl", "compared": "câm-pérd", "computers": "câm-piú-têrz", "define": "di-fáin", "defines": "di-fáinz", "did": "díd", "differ": "dí-fêr", "diverge": "dai-vêrdj", "document": "dó-kiu-mênt", "dp": "di-pí", "dpo": "di-pi-ôu", "each": "itch", "fail": "fêil", "fails": "fêilz", "filters": "fíl-têrz", "guides": "gáidz", "incorrect": "in-câ-réct", "intentional": "in-tén-châ-nâl", "its": "its", "lop": "él-ôu-pi", "most": "môust", "now": "náu", "out": "áut", "pms": "pi-êm-és", "prompts": "prómpts", "sets": "séts", "sim": "sim", "slow": "slôu", "taut": "tót", "trial": "trái-âl", "trials": "trái-âlz", "tugs": "tâgz", "two": "tu"}</script>
+<script id="data-gloss" type="application/json">[["why", "uai", "Palavra usada para iniciar perguntas de motivo/causa.", "Word used to start questions about reason or cause."], ["what", "uót", "Usada para perguntar 'o quê'.", "Used to ask 'what'."], ["how", "háu", "Usada para perguntar 'como'.", "Used to ask 'how'."], ["which", "uítch", "Usada para perguntar 'qual'.", "Used to ask 'which one'."], ["does", "dâz", "Auxiliar usado em perguntas no presente.", "Auxiliary verb used in present-tense questions."], ["should", "chúd", "Indica recomendação ('deveria').", "Indicates a recommendation ('should')."], ["must", "mâst", "Indica obrigação ('deve').", "Indicates an obligation ('must')."], ["dynamic positioning", "dai-né-mic pô-zí-châ-ning", "O termo em inglês para 'posicionamento dinâmico'.", "The technical term for keeping a vessel's position using thrusters."], ["thruster", "trás-têr", "Propulsor da embarcação.", "The vessel's propulsion unit."], ["vessel", "vé-sâl", "Embarcação, navio.", "A ship or boat."], ["sensor", "sén-sôr", "Sensor.", "A device that measures a physical quantity."], ["position", "pô-zí-chân", "Posição.", "Location in space."], ["failure", "féil-iâr", "Falha.", "A fault or breakdown."], ["redundancy", "ri-dân-dân-si", "Redundância.", "Backup capacity in case of failure."], ["power", "pá-uêr", "Energia / potência.", "Electrical energy or capacity."], ["control", "cân-trôul", "Controle.", "The act of directing or regulating a system."], ["operator", "ó-pê-rêi-tôr", "Operador.", "The person who runs the system."], ["reference", "ré-fê-rêns", "Referência.", "A fixed point used for comparison."], ["blackout", "blék-aut", "Apagão total de energia.", "A total loss of electrical power."], ["drift-off", "drift-óf", "Deriva lenta de posição.", "A slow, gradual loss of position."], ["drive-off", "dráiv-óf", "Movimento acelerado por comando incorreto.", "A fast, unwanted movement caused by an incorrect command."], ["joystick", "djói-stik", "Alavanca de controle manual.", "A manual control lever."], ["gyrocompass", "djái-rô-câm-pâs", "Giroscópio / bússola giroscópica.", "A heading sensor independent of magnetism."], ["wind", "uínd", "Vento.", "Moving air."], ["current", "kâ-rênt", "Corrente marítima.", "The flow of seawater."], ["wave", "uêiv", "Onda.", "A wave on the sea surface."], ["heading", "hé-ding", "Rumo da embarcação.", "The direction the vessel's bow points."], ["capacity", "kâ-pé-si-ti", "Capacidade.", "The available amount or limit of something."], ["allocation", "é-lô-kêi-chân", "Alocação.", "The distribution of a resource among parts."], ["consequence", "kón-si-kuêns", "Consequência.", "The result or effect of an event."], ["worst case", "uêrst kêis", "Pior caso.", "The most severe possible scenario."], ["filter", "fíl-têr", "Filtro.", "A process that removes unwanted noise from a signal."], ["model", "mó-dâl", "Modelo.", "A mathematical or conceptual representation."], ["system", "sís-têm", "Sistema.", "A set of components working together."], ["class", "clés", "Classe.", "A category or rating level."], ["generator", "djé-nê-rêi-tôr", "Gerador de energia.", "A machine that produces electrical power."], ["voltage", "vôul-tidj", "Tensão elétrica.", "Electrical potential difference."], ["network", "nét-uêrk", "Rede.", "A connected system of components."], ["independent", "in-di-pén-dênt", "Independente.", "Not dependent on another component."], ["physical", "fí-zi-câl", "Físico.", "Relating to tangible, material things."], ["separation", "sé-pâ-rêi-chân", "Separação.", "Physical division between components."], ["bulkhead", "bâlk-héd", "Mamparo.", "A structural partition inside the hull."], ["azimuth thruster", "é-zi-mât trás-têr", "Propulsor azimutal.", "A thruster that rotates to give thrust in any direction."], ["retractable", "ri-tréc-tâ-bâl", "Retrátil.", "Able to be pulled back into the hull."], ["supply vessel", "sâ-plái vé-sâl", "Embarcação de suprimento.", "A vessel that carries cargo and supplies."], ["drilling", "drí-ling", "Perfuração.", "The process of boring a well."], ["drillship", "dríl-chip", "Navio-sonda.", "A ship equipped to drill wells."], ["dive support vessel", "dáiv sâ-pórt vé-sâl", "Embarcação de apoio a mergulho.", "A vessel that supports diving operations."], ["cable-lay vessel", "kêi-bâl-lêi vé-sâl", "Embarcação de lançamento de cabos.", "A vessel that lays subsea cables."], ["anchor handling", "én-kôr hén-dling", "Manuseio de âncoras.", "Deploying and retrieving anchors."], ["towing", "tôu-ing", "Rebocagem.", "Pulling another vessel or object."], ["voting", "vôu-ting", "Votação (entre sensores).", "Comparing sensor readings to choose the best one."], ["weighting", "uêi-ting", "Ponderação de peso/confiança.", "Assigning relative confidence to a value."], ["median", "mí-di-ân", "Mediana.", "The middle value in a data set."], ["common cause failure", "kó-mân kôz féil-iâr", "Falha de causa comum.", "A failure that affects several redundant systems at once."], ["single point of failure", "sín-gâl point óv féil-iâr", "Ponto único de falha.", "A component whose failure alone can cause a loss."], ["changeover", "tchêindj-ô-vêr", "Comutação/transferência entre sistemas.", "Switching control from one system to a backup."], ["self-healing", "sélf-hí-ling", "Autorrecuperação do sistema.", "The system's ability to recover automatically from a fault."], ["thrust bias", "trâst bái-âs", "Empuxo adicional deliberado.", "A constant extra thrust applied on purpose."], ["forbidden zone", "fôr-bí-dên zôun", "Zona proibida.", "An angular sector where a thruster must not operate."], ["rate limiting", "rêit lí-mi-ting", "Limitação de velocidade de variação.", "Limiting how fast a command can change."], ["loss of position", "lós óv pô-zí-chân", "Perda de posição.", "Exceeding the safe position-keeping limits."], ["emergency disconnect", "i-mêr-djên-si dis-câ-néct", "Desconexão de emergência.", "Quickly disconnecting equipment to prevent damage."], ["near miss", "nír mis", "Quase acidente.", "An event that almost became an accident."], ["root cause", "rut kôz", "Causa raiz.", "The underlying reason behind a failure."], ["safety margin", "sêif-ti már-djin", "Margem de segurança.", "The buffer between normal operation and an unsafe limit."], ["capability plot", "kêi-pâ-bí-li-ti plót", "Gráfico de capacidade.", "A chart showing available thrust in each direction."], ["tolerance radius", "tó-lê-râns rêi-di-âs", "Raio de tolerância.", "The acceptable radius of position excursion."], ["residual capacity", "ri-zí-diu-âl kâ-pé-si-ti", "Capacidade residual.", "The thrust capacity remaining after a failure."]]</script>
+<script>
+const ALL_Q = JSON.parse(document.getElementById('data-q').textContent);
+const PHON_DICT = JSON.parse(document.getElementById('data-phon').textContent);
+const GLOSS = JSON.parse(document.getElementById('data-gloss').textContent);
+
+const state = {
+  level: 'basico', tab: null, lang: 'pt', pron: false,
+  seen: new Set(),
+  qaIndex: {basico:0, avancado:0}, qaCat: {basico:'__ALL__', avancado:'__ALL__'},
+  quiz: null, lastQuizScore: {basico:null, avancado:null},
+  mcCache: {}, mcAnswered: {},
+};
+
+/* ---------------- i18n ---------------- */
+const UI = {
+  brandTagline:{pt:'Posicionamento Dinâmico', en:'Dynamic Positioning'},
+  lvlBasico:{pt:'Básico', en:'Basic'}, lvlAvancado:{pt:'Avançado', en:'Advanced'},
+  lblLang:{pt:'Idioma do conteúdo', en:'Content language'},
+  lblPron:{pt:'Guia de pronúncia + áudio 🔊', en:'Pronunciation guide + audio 🔊'},
+  heroTitleBasico:{pt:'Nível Básico — Visão do sistema e da embarcação', en:'Basic Level — Vessel and System Overview'},
+  heroTitleAvancado:{pt:'Nível Avançado — Engenharia, redundância e simulação', en:'Advanced Level — Engineering, Redundancy and Simulation'},
+  heroSubBasico:{pt:'Perguntas de múltipla escolha, puzzle de terminologia e problemas com solução, sempre sob a ótica da embarcação e do sistema DP.', en:"Multiple-choice questions, terminology puzzle and problems with solutions, always from the vessel's and the DP system's point of view."},
+  heroSubAvancado:{pt:'Teoria de controle, FMEA, redundância, arquiteturas de sistemas comerciais, estudos de caso e simulador de posicionamento dinâmico.', en:'Control theory, FMEA, redundancy, commercial system architectures, case studies and a dynamic positioning simulator.'},
+  statQuestions:{pt:'Perguntas', en:'Questions'}, statReviewed:{pt:'Revisadas', en:'Reviewed'},
+  statCorrect:{pt:'Acertos', en:'Correct'}, statLastQuiz:{pt:'Último quiz', en:'Last quiz'},
+  tabQA:{pt:'Perguntas & Respostas', en:'Questions & Answers'}, tabQuiz:{pt:'Quiz', en:'Quiz'},
+  tabPuzzle:{pt:'Puzzle de Termos', en:'Terminology Puzzle'}, tabProblema:{pt:'Problemas & Soluções', en:'Problems & Solutions'},
+  tabPronuncia:{pt:'Guia de Pronúncia', en:'Pronunciation Guide'}, tabCasos:{pt:'Estudos de Caso', en:'Case Studies'},
+  tabSimulador:{pt:'Simulador DP', en:'DP Simulator'},
+  headQA:{pt:'Perguntas & Respostas', en:'Questions & Answers'}, headCasos:{pt:'Estudos de Caso', en:'Case Studies'},
+  itemsCount:{pt:'itens', en:'items'}, catAll:{pt:'Todas', en:'All'},
+  navPrev:{pt:'◀ Anterior', en:'◀ Previous'}, navNext:{pt:'Próxima ▶', en:'Next ▶'},
+  answeredLabel:{pt:'Respondidas', en:'Answered'}, correctLabel:{pt:'Acertos', en:'Correct'},
+  wordQuestion:{pt:'Pergunta', en:'Question'}, wordOf:{pt:'de', en:'of'},
+  scoreLabel:{pt:'Pontuação', en:'Score'}, btnNext:{pt:'Próxima', en:'Next'},
+  btnSeeResult:{pt:'Ver resultado', en:'See result'}, btnRetakeQuiz:{pt:'Refazer quiz', en:'Retake quiz'},
+  resultExcellent:{pt:'excelente conhecimento operacional.', en:'excellent operational knowledge.'},
+  resultGood:{pt:'bom, revise os pontos que errou.', en:'good — review what you got wrong.'},
+  resultPoor:{pt:'recomendado revisar o material antes de repetir.', en:'we recommend reviewing the material before trying again.'},
+  accuracyLabel:{pt:'de acerto', en:'accuracy'},
+  headPuzzle:{pt:'Puzzle de Terminologia', en:'Terminology Puzzle'}, correctWord:{pt:'acertos', en:'correct'},
+  puzzleResultSuffix:{pt:'siglas reconhecidas corretamente.', en:'acronyms correctly recognized.'},
+  btnPlayAgain:{pt:'Jogar novamente', en:'Play again'}, btnNextTerm:{pt:'Próximo termo', en:'Next term'},
+  headProblema:{pt:'Problemas & Soluções — Visão da Embarcação', en:"Problems & Solutions — Vessel's Point of View"},
+  scenariosCount:{pt:'cenários', en:'scenarios'}, lblSituation:{pt:'Situação a bordo', en:'Situation on board'},
+  headGloss:{pt:'Guia de Pronúncia — Termos de DP em Inglês', en:'Pronunciation Guide — DP Terms in English'},
+  termsCount:{pt:'termos', en:'terms'},
+  glossNote:{pt:'Leitura aproximada em "fonética de português" — como no exemplo why → uai. Toque no 🔊 para ouvir a pronúncia real.', en:'Approximate Portuguese-style phonetic reading — like the example why → uai. Tap 🔊 to hear the real pronunciation.'},
+  glossSearchPh:{pt:'Buscar termo em inglês ou português...', en:'Search term in English or Portuguese...'},
+  simTitle:{pt:'Simulador de Posicionamento Dinâmico', en:'Dynamic Positioning Simulator'},
+  simEduTag:{pt:'modelo educacional', en:'educational model'},
+  roExcursion:{pt:'Excursão de posição', en:'Position excursion'}, roCapacity:{pt:'Capacidade residual', en:'Residual capacity'},
+  roStatus:{pt:'Status', en:'Status'}, roTime:{pt:'Tempo de simulação', en:'Simulation time'},
+  roHeading:{pt:'Rumo', en:'Heading'}, roSpeed:{pt:'Velocidade de deriva', en:'Drift speed'},
+  roLaser:{pt:'Referência a laser', en:'Laser reference'},
+  laserActive:{pt:'ATIVA', en:'ACTIVE'}, laserLost:{pt:'PERDIDA', en:'LOST'},
+  refGroupLabel:{pt:'Referência externa', en:'External reference'},
+  refNone:{pt:'Nenhuma', en:'None'}, refPlatform:{pt:'Plataforma fixa', en:'Fixed platform'}, refTug:{pt:'Rebocador de apoio', en:'Support tug'},
+  refNote:{pt:'Coloca uma estrutura de referência (plataforma ou outra embarcação) com um sistema de posicionamento a laser apontado para o seu navio, como Fanbeam/CyScan.', en:'Places a reference structure (platform or another vessel) with a laser position reference system aimed at your vessel, like Fanbeam/CyScan.'},
+  simScreenPosicao:{pt:'Posição', en:'Position'}, simScreenEnergia:{pt:'Energia (PMS)', en:'Power (PMS)'},
+  simScreenPropulsores:{pt:'Propulsores', en:'Thrusters'}, simScreenAlarmes:{pt:'Alarmes', en:'Alarms'},
+  pmsFreq:{pt:'Frequência', en:'Frequency'}, pmsVoltage:{pt:'Tensão', en:'Voltage'},
+  pmsLoad:{pt:'Carga total', en:'Total load'}, pmsBus:{pt:'Barramento (BTB)', en:'Bus tie (BTB)'},
+  busClosed:{pt:'FECHADO', en:'CLOSED'}, busOpen:{pt:'ABERTO', en:'OPEN'},
+  genLabel:{pt:'GER', en:'GEN'}, pmsThrustersLoad:{pt:'PROPULSORES', en:'THRUSTERS'}, pmsAuxLoad:{pt:'CARGAS AUX.', en:'AUX LOADS'},
+  thrBowTunnel1:{pt:'Túnel Proa 1', en:'Bow Tunnel 1'}, thrBowTunnel2:{pt:'Túnel Proa 2', en:'Bow Tunnel 2'},
+  thrSternAzPort:{pt:'Azimutal Popa Bombordo', en:'Stern Azimuth Port'}, thrSternAzStbd:{pt:'Azimutal Popa Boreste', en:'Stern Azimuth Starboard'},
+  thrRpm:{pt:'RPM', en:'RPM'}, thrLoad:{pt:'Carga', en:'Load'}, thrAngle:{pt:'Ângulo', en:'Angle'}, thrFailed:{pt:'FALHA — DESLIGADO', en:'FAILED — SHUT DOWN'},
+  alarmLossOfPosition:{pt:'PERDA DE POSIÇÃO — excursão acima do limite seguro', en:'LOSS OF POSITION — excursion beyond safe limit'},
+  alarmDrifting:{pt:'Atenção: deriva de posição detectada', en:'Warning: position drift detected'},
+  alarmPositionRestored:{pt:'Posição dentro dos limites', en:'Position within limits'},
+  alarmLaserLost:{pt:'Referência a laser perdida', en:'Laser reference lost'},
+  alarmLaserRestored:{pt:'Referência a laser restabelecida', en:'Laser reference restored'},
+  alarmScenarioChanged:{pt:'Cenário alterado', en:'Scenario changed'},
+  noAlarms:{pt:'Nenhum alarme registrado ainda. Inicie a simulação.', en:'No alarms logged yet. Start the simulation.'},
+  statusOk:{pt:'EM POSIÇÃO', en:'IN POSITION'}, statusWarn:{pt:'ATENÇÃO — DERIVA', en:'WARNING — DRIFTING'},
+  statusBad:{pt:'PERDA DE POSIÇÃO', en:'LOSS OF POSITION'},
+  envCond:{pt:'Condições ambientais', en:'Environmental conditions'}, wind:{pt:'Vento', en:'Wind'}, current:{pt:'Corrente', en:'Current'},
+  lblWindDir:{pt:'Direção do vento', en:'Wind direction'}, lblCurrentDir:{pt:'Direção da corrente', en:'Current direction'},
+  failScenario:{pt:'Cenário de falha', en:'Failure scenario'},
+  optNoFail:{pt:'Nenhuma falha (100% capacidade)', en:'No failure (100% capacity)'},
+  optThrusterLoss:{pt:'Perda de 1 thruster', en:'Loss of 1 thruster'},
+  optBlackout:{pt:'Blackout parcial (1 seção de energia)', en:'Partial blackout (1 power section)'},
+  optSensorFail:{pt:'Falha de sensor de posição', en:'Position sensor failure'},
+  sysPhilosophy:{pt:'Filosofia do sistema', en:'System philosophy'},
+  optKongsberg:{pt:'Estilo Kongsberg K-Pos', en:'Kongsberg K-Pos style'}, optGE:{pt:'Estilo GE / Alstom ADP', en:'GE / Alstom ADP style'},
+  optGeneric:{pt:'Genérico / outros fabricantes', en:'Generic / other manufacturers'},
+  btnStart:{pt:'Iniciar', en:'Start'}, btnPause:{pt:'Pausar', en:'Pause'}, btnResume:{pt:'Continuar', en:'Resume'}, btnReset:{pt:'Reiniciar', en:'Reset'},
+  simNote:{pt:'Simulação simplificada para fins didáticos: representa os princípios gerais de compensação ambiental, alocação de empuxo e resposta a falhas de um sistema DP — não reproduz o software real de nenhum fabricante.', en:"Simplified simulation for teaching purposes: it represents the general principles of environmental compensation, thrust allocation and failure response in a DP system — it does not reproduce any manufacturer's real software."},
+  footerNote:{pt:'Conteúdo educacional sobre posicionamento dinâmico (DP) para navios de apoio, rebocadores (AHTS/PSV), navios-sonda e plataformas offshore.<br>O áudio usa a voz de inglês do seu navegador/dispositivo; o texto em fonética é um guia aproximado de leitura, não é transcrição fonética (IPA) oficial.<br>O simulador é uma representação simplificada com fins didáticos e não reproduz o software de nenhum fabricante específico.',
+    en:"Educational content on dynamic positioning (DP) for support vessels, tugs (AHTS/PSV), drillships and offshore platforms.<br>Audio uses your browser/device's English voice; the phonetic text is an approximate reading guide, not an official phonetic (IPA) transcription.<br>The simulator is a simplified representation for teaching purposes and does not reproduce any specific manufacturer's software."},
+  noItemsCat:{pt:'Nenhum item nesta categoria.', en:'No items in this category.'},
+};
+function t(key){ const e = UI[key]; if(!e) return key; return e[state.lang==='en' ? 'en' : 'pt']; }
+function chromeLang(){ return state.lang==='en' ? 'en' : 'pt'; }
+
+const CAT_EN = {
+  'Fundamentos de DP':'DP Fundamentals',
+  'Classes DP (IMO)':'DP Classes (IMO)',
+  'Propulsores (Thrusters)':'Thrusters',
+  'Sistemas de Referência de Posição':'Position Reference Systems',
+  'Sensores Ambientais e de Movimento':'Environmental & Motion Sensors',
+  'Sistema de Energia':'Power System',
+  'O Papel do DPO':"The DPO's Role",
+  'Tipos de Embarcações Offshore':'Offshore Vessel Types',
+  'Problemas e Soluções':'Problems and Solutions',
+  'Puzzle de Terminologia':'Terminology Puzzle',
+  'Teoria de Controle e Modelagem':'Control Theory and Modeling',
+  'FMEA e Provas de Redundância':'FMEA and Redundancy Trials',
+  'Análise de Consequência (WCFDI)':'Consequence Analysis (WCFDI)',
+  'Redundância e Notações de Classe':'Redundancy and Class Notations',
+  'Arquiteturas de Sistemas Comerciais':'Commercial System Architectures',
+  'Alocação de Empuxo':'Thrust Allocation',
+  'Falhas Críticas: Drift-off, Drive-off e Blackout':'Critical Failures: Drift-off, Drive-off and Blackout',
+  'Gestão e Votação de Sensores Redundantes':'Redundant Sensor Management and Voting',
+  'Estudos de Caso e Lições Aprendidas':'Case Studies and Lessons Learned',
+  'Cenários de Simulação':'Simulation Scenarios',
+};
+function catLabel(cat){ return chromeLang()==='en' ? (CAT_EN[cat]||cat) : cat; }
+
+/* ---------------- language + pronunciation engine ---------------- */
+let speakReg = {}; let speakN = 0;
+function registerSpeak(text){ const id = 's'+(speakN++); speakReg[id]=text; return id; }
+function speakByRef(id){ speakEnglish(speakReg[id]); }
+function speakEnglish(text){
+  if(!('speechSynthesis' in window) || !text) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/["“”]/g,''));
+  u.lang = 'en-US'; u.rate = 0.92;
+  const voices = window.speechSynthesis.getVoices();
+  const v = voices.find(v=>/^en/i.test(v.lang));
+  if(v) u.voice = v;
+  window.speechSynthesis.speak(u);
+}
+if('speechSynthesis' in window){ window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged=()=>{}; }
+
+function fallbackPhon(w){
+  let s = w.toLowerCase();
+  s = s.replace(/tion$/,'chun').replace(/sion$/,'jun').replace(/ture$/,'tchur').replace(/sure$/,'shur');
+  s = s.replace(/ould$/,'ud').replace(/ight/g,'ait').replace(/augh/g,'af').replace(/ough/g,'af');
+  s = s.replace(/sh/g,'ch').replace(/wh/g,'u').replace(/th/g,'t').replace(/ph/g,'f').replace(/gh/g,'');
+  s = s.replace(/ck/g,'k').replace(/qu/g,'ku').replace(/x/g,'ks');
+  s = s.replace(/oo/g,'u').replace(/ee/g,'i').replace(/ea/g,'i');
+  s = s.replace(/ai|ay/g,'ei').replace(/oa/g,'ou').replace(/ow/g,'ou');
+  s = s.replace(/j/g,'dj').replace(/y/g,'i');
+  s = s.replace(/c(?=[eiy])/g,'s').replace(/c/g,'k').replace(/g(?=[eiy])/g,'dj');
+  return s;
+}
+function phonWord(token){
+  const clean = token.toLowerCase().replace(/[^a-z']/g,'');
+  if(!clean) return token;
+  return PHON_DICT[clean] || fallbackPhon(clean);
+}
+function phonSentence(text){
+  const parts = text.match(/[A-Za-z']+|[^A-Za-z']+/g) || [];
+  return parts.map(p => /[A-Za-z]/.test(p) ? phonWord(p) : p).join('');
+}
+
+/* bi(): renders bilingual content block, always with audio on the EN part. */
+function bi(pt, en){
+  let html = '';
+  if(state.lang==='pt' || state.lang==='pt_en'){
+    html += `<div class="txt-pt">${pt}</div>`;
+  }
+  if(state.lang==='en' || state.lang==='pt_en'){
+    const id = registerSpeak(en);
+    html += `<div class="txt-en"><span>${en}</span><button class="audio-btn" onclick="event.stopPropagation();speakByRef('${id}')" title="Play">🔊</button></div>`;
+    if(state.pron){
+      html += `<div class="txt-phon">🗣️ ${phonSentence(en)}</div>`;
+    }
+  }
+  return html;
+}
+
+function byLevel(level){ return ALL_Q.filter(q=>q.level===level); }
+function cats(level, tipo){
+  const s = new Set(byLevel(level).filter(q=>tipo?q.tipo===tipo:true).map(q=>q.cat));
+  return ['__ALL__', ...s];
+}
+
+const TABS = {
+  basico: [
+    {id:'qa', key:'tabQA'}, {id:'quiz', key:'tabQuiz'}, {id:'puzzle', key:'tabPuzzle'},
+    {id:'problema', key:'tabProblema'}, {id:'pronuncia', key:'tabPronuncia'},
+  ],
+  avancado: [
+    {id:'qa', key:'tabQA'}, {id:'quiz', key:'tabQuiz'}, {id:'casos', key:'tabCasos'},
+    {id:'simulador', key:'tabSimulador'}, {id:'pronuncia', key:'tabPronuncia'},
+  ]
+};
+
+/* ---------------- score helpers ---------------- */
+function seenCountForLevel(level){
+  const ids = new Set(byLevel(level).map(q=>q.id));
+  let n = 0; state.seen.forEach(id=>{ if(ids.has(id)) n++; });
+  return n;
+}
+function scoreForLevel(level){
+  const ids = new Set(byLevel(level).map(q=>q.id));
+  let answered=0, correct=0;
+  Object.keys(state.mcAnswered).forEach(idStr=>{
+    const id = +idStr;
+    if(ids.has(id)){ answered++; if(state.mcAnswered[idStr].correct) correct++; }
+  });
+  return {answered, correct};
+}
+function markAnswered(item, chosenId, correct){
+  state.mcAnswered[item.id] = {chosenId, correct};
+  state.seen.add(item.id);
+  refreshStats();
+}
+
+/* ---------------- chrome refresh ---------------- */
+function refreshChrome(){
+  document.getElementById('brand-tagline').textContent = t('brandTagline');
+  document.getElementById('btn-lvl-basico').textContent = t('lvlBasico');
+  document.getElementById('btn-lvl-avancado').textContent = t('lvlAvancado');
+  document.getElementById('lbl-lang').textContent = t('lblLang');
+  document.getElementById('lbl-pron').textContent = t('lblPron');
+  document.getElementById('footer-note').innerHTML = t('footerNote');
+  document.getElementById('lbl-stat-total').textContent = t('statQuestions');
+  document.getElementById('lbl-stat-seen').textContent = t('statReviewed');
+  document.getElementById('lbl-stat-correct').textContent = t('statCorrect');
+  document.getElementById('lbl-stat-quiz').textContent = t('statLastQuiz');
+}
+function updateHeroText(){
+  const level = state.level;
+  document.getElementById('hero-title').textContent = level==='basico' ? t('heroTitleBasico') : t('heroTitleAvancado');
+  document.getElementById('hero-sub').textContent = level==='basico' ? t('heroSubBasico') : t('heroSubAvancado');
+}
+function refreshStats(){
+  const level = state.level;
+  document.getElementById('stat-total').textContent = byLevel(level).length;
+  document.getElementById('stat-seen').textContent = seenCountForLevel(level);
+  const sc = scoreForLevel(level);
+  document.getElementById('stat-correct').textContent = `${sc.correct}/${sc.answered}`;
+  document.getElementById('stat-quiz').textContent = state.lastQuizScore[level]===null ? '—' : state.lastQuizScore[level];
+}
+
+function setLevel(level){
+  state.level = level;
+  document.body.setAttribute('data-level', level);
+  document.getElementById('btn-lvl-basico').classList.toggle('active', level==='basico');
+  document.getElementById('btn-lvl-avancado').classList.toggle('active', level==='avancado');
+  state.tab = TABS[level][0].id;
+  refreshChrome(); updateHeroText(); refreshStats(); renderTabs(); renderTab(); drawHeroPlot();
+}
+
+function renderTabs(){
+  const wrap = document.getElementById('tabs');
+  wrap.innerHTML = '';
+  TABS[state.level].forEach(tb=>{
+    const b = document.createElement('button');
+    b.className = 'tab-btn' + (state.tab===tb.id ? ' active':'');
+    b.textContent = t(tb.key);
+    b.onclick = ()=>{ state.tab = tb.id; renderTabs(); renderTab(); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderTab(){
+  const c = document.getElementById('content');
+  c.innerHTML = '';
+  if(state.tab==='qa') return renderQA(c, null);
+  if(state.tab==='casos') return renderQA(c, 'Estudos de Caso e Lições Aprendidas');
+  if(state.tab==='quiz') return renderQuiz(c);
+  if(state.tab==='puzzle') return renderPuzzle(c);
+  if(state.tab==='problema') return renderProblema(c);
+  if(state.tab==='simulador') return renderSimulador(c);
+  if(state.tab==='pronuncia') return renderGlossario(c);
+}
+
+/* ---------------- option element (div-based, supports nested audio button) ---------------- */
+function makeOptionEl(pt, en, state_, onPick){
+  const div = document.createElement('div');
+  div.className = 'quiz-opt';
+  div.setAttribute('role','button');
+  div.setAttribute('tabindex', state_.answered ? '-1' : '0');
+  div.innerHTML = bi(pt, en);
+  if(state_.answered){
+    div.classList.add('disabled');
+    if(state_.isCorrectOption) div.classList.add('correct');
+    else if(state_.isChosen) div.classList.add('wrong');
+  } else {
+    const pick = (e)=>{ if(e.target.closest('.audio-btn')) return; onPick(); };
+    div.onclick = pick;
+    div.onkeydown = (e)=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pick(e); } };
+  }
+  return div;
+}
+
+function getMcOptions(basePool, item){
+  const key = 'mc_'+item.id;
+  if(!state.mcCache[key]){
+    const distractors = basePool.filter(q=>q.id!==item.id).sort(()=>Math.random()-0.5).slice(0,3);
+    const opts = [...distractors, item].sort(()=>Math.random()-0.5);
+    state.mcCache[key] = opts.map(o=>o.id);
+  }
+  return state.mcCache[key].map(id => basePool.find(p=>p.id===id) || ALL_Q.find(p=>p.id===id));
+}
+
+/* ---------------- QA MODE (multiple choice, all 200 browsable) ---------------- */
+function renderQA(root, forceCat){
+  root.innerHTML = '';
+  const level = state.level;
+  const pool0 = byLevel(level).filter(q=>q.tipo==='qa');
+  const pool = forceCat ? pool0.filter(q=>q.cat===forceCat) : pool0;
+  const catList = forceCat ? ['__ALL__'] : cats(level,'qa');
+  const activeCat = forceCat ? '__ALL__' : state.qaCat[level];
+  const filtered = activeCat==='__ALL__' ? pool : pool.filter(q=>q.cat===activeCat);
+  if(state.qaIndex[level] >= filtered.length) state.qaIndex[level]=0;
+  const idx = state.qaIndex[level];
+  const item = filtered[idx];
+
+  const panel = document.createElement('div'); panel.className='panel';
+  const answeredInSet = filtered.filter(q=>state.mcAnswered[q.id]).length;
+  const correctInSet = filtered.filter(q=>state.mcAnswered[q.id] && state.mcAnswered[q.id].correct).length;
+  const head = document.createElement('div'); head.className='section-head';
+  head.innerHTML = `<h2>${forceCat ? t('headCasos') : t('headQA')}</h2>
+    <span class="count">${filtered.length} ${t('itemsCount')}<br>${t('answeredLabel')}: ${answeredInSet}/${filtered.length} · ${t('correctLabel')}: ${correctInSet}</span>`;
+  panel.appendChild(head);
+
+  if(!forceCat){
+    const filt = document.createElement('div'); filt.className='cat-filter';
+    catList.forEach(cat=>{
+      const p = document.createElement('button');
+      p.className='cat-pill'+(activeCat===cat?' active':'');
+      p.textContent = cat==='__ALL__' ? t('catAll') : catLabel(cat);
+      p.onclick = ()=>{ state.qaCat[level]=cat; state.qaIndex[level]=0; renderQA(root, forceCat); };
+      filt.appendChild(p);
+    });
+    panel.appendChild(filt);
+  }
+
+  if(!item){
+    panel.innerHTML += `<p style="color:var(--ink-dim)">${t('noItemsCat')}</p>`;
+    root.appendChild(panel); return;
+  }
+
+  const card = document.createElement('div'); card.className='qa-card';
+  card.innerHTML = `<div class="tag">${catLabel(item.cat)}</div><div class="q-block">${bi(item.q_pt, item.q_en)}</div>`;
+  const optsWrap = document.createElement('div');
+  const already = state.mcAnswered[item.id];
+  const options = getMcOptions(pool0, item);
+  options.forEach(opt=>{
+    const isCorrectOption = opt.id===item.id;
+    const isChosen = already && already.chosenId===opt.id;
+    const el = makeOptionEl(opt.a_pt, opt.a_en, {answered: !!already, isCorrectOption, isChosen}, ()=>{
+      markAnswered(item, opt.id, isCorrectOption);
+      renderQA(root, forceCat);
+    });
+    optsWrap.appendChild(el);
+  });
+  card.appendChild(optsWrap);
+  panel.appendChild(card);
+
+  const nav = document.createElement('div'); nav.className='qa-nav';
+  const prevBtn = document.createElement('button'); prevBtn.textContent=t('navPrev');
+  prevBtn.disabled = idx===0;
+  prevBtn.onclick = ()=>{ state.qaIndex[level]=Math.max(0,idx-1); renderQA(root, forceCat); };
+  const nextBtn = document.createElement('button'); nextBtn.textContent=t('navNext');
+  nextBtn.disabled = idx>=filtered.length-1;
+  nextBtn.onclick = ()=>{ state.qaIndex[level]=Math.min(filtered.length-1,idx+1); renderQA(root, forceCat); };
+  const prog = document.createElement('span'); prog.className='qa-progress mono'; prog.textContent = `${idx+1} / ${filtered.length}`;
+  nav.appendChild(prevBtn); nav.appendChild(prog); nav.appendChild(nextBtn);
+  panel.appendChild(nav);
+
+  root.appendChild(panel);
+}
+
+/* ---------------- QUIZ MODE (10-question timed session) ---------------- */
+function buildQuiz(level){
+  const pool = byLevel(level).filter(q=>q.tipo==='qa');
+  const shuffled = [...pool].sort(()=>Math.random()-0.5).slice(0,10);
+  const questions = shuffled.map(item=>{
+    const distractors = pool.filter(q=>q.id!==item.id).sort(()=>Math.random()-0.5).slice(0,3);
+    const options = [...distractors, item].sort(()=>Math.random()-0.5);
+    return {qItem:item, cat:item.cat, correctId:item.id, options};
+  });
+  return {questions, i:0, score:0, answeredThis:false};
+}
+
+function renderQuiz(root){
+  root.innerHTML = '';
+  if(!state.quiz || state.quiz.level!==state.level){
+    state.quiz = buildQuiz(state.level); state.quiz.level = state.level;
+  }
+  const quiz = state.quiz;
+  const panel = document.createElement('div'); panel.className='panel';
+
+  if(quiz.i >= quiz.questions.length){
+    const pct = Math.round(100*quiz.score/quiz.questions.length);
+    state.lastQuizScore[state.level] = `${quiz.score}/${quiz.questions.length}`;
+    refreshStats();
+    const resultMsg = pct>=80 ? t('resultExcellent') : pct>=50 ? t('resultGood') : t('resultPoor');
+    panel.innerHTML = `
+      <div class="quiz-result">
+        <div class="big">${quiz.score}/${quiz.questions.length}</div>
+        <p>${pct}% ${t('accuracyLabel')} — ${resultMsg}</p>
+      </div>`;
+    const btn = document.createElement('button'); btn.className='btn-primary'; btn.style.display='block'; btn.style.margin='0 auto';
+    btn.textContent = t('btnRetakeQuiz');
+    btn.onclick = ()=>{ state.quiz = buildQuiz(state.level); state.quiz.level = state.level; renderQuiz(root); };
+    panel.appendChild(btn); root.appendChild(panel); return;
+  }
+
+  const q = quiz.questions[quiz.i];
+  const bar = document.createElement('div'); bar.className='quiz-progress-bar';
+  bar.innerHTML = `<div style="width:${100*quiz.i/quiz.questions.length}%"></div>`;
+  panel.appendChild(bar);
+
+  const tag = document.createElement('div'); tag.className='mono'; tag.style.fontSize='10px'; tag.style.color='var(--level-accent)'; tag.style.letterSpacing='1px'; tag.style.textTransform='uppercase'; tag.style.marginBottom='8px';
+  tag.textContent = `${catLabel(q.cat)} · ${t('wordQuestion')} ${quiz.i+1} ${t('wordOf')} ${quiz.questions.length}`;
+  panel.appendChild(tag);
+
+  const qEl = document.createElement('div'); qEl.className='quiz-q';
+  qEl.innerHTML = bi(q.qItem.q_pt, q.qItem.q_en);
+  panel.appendChild(qEl);
+
+  q.options.forEach(optItem=>{
+    const isCorrectOption = optItem.id===q.correctId;
+    const el = makeOptionEl(optItem.a_pt, optItem.a_en, {answered:false}, ()=>{
+      quiz.answeredThis = true;
+      if(isCorrectOption) quiz.score++;
+      [...panel.querySelectorAll('.quiz-opt')].forEach((o,i)=>{
+        o.classList.add('disabled'); o.tabIndex=-1;
+        if(q.options[i].id===q.correctId) o.classList.add('correct');
+        else if(q.options[i].id===optItem.id) o.classList.add('wrong');
+      });
+      footer.querySelector('.btn-primary').disabled = false;
+    });
+    panel.appendChild(el);
+  });
+
+  const footer = document.createElement('div'); footer.className='quiz-footer';
+  const score = document.createElement('div'); score.className='quiz-score'; score.textContent = `${t('scoreLabel')}: ${quiz.score}`;
+  const next = document.createElement('button'); next.className='btn-primary';
+  next.textContent = quiz.i===quiz.questions.length-1 ? t('btnSeeResult') : t('btnNext');
+  next.disabled = true;
+  next.onclick = ()=>{ quiz.i++; quiz.answeredThis=false; renderQuiz(root); };
+  footer.appendChild(score); footer.appendChild(next);
+  panel.appendChild(footer);
+
+  root.appendChild(panel);
+}
+
+/* ---------------- PUZZLE MODE (basico only) ---------------- */
+function renderPuzzle(root){
+  root.innerHTML = '';
+  const pool = byLevel('basico').filter(q=>q.tipo==='puzzle');
+  if(!state.puzzleOrder || state.puzzleOrder.level!=='basico'){
+    state.puzzleOrder = {level:'basico', order: pool.map(q=>q.id).sort(()=>Math.random()-0.5), i:0, score:0};
+  }
+  const po = state.puzzleOrder;
+  const panel = document.createElement('div'); panel.className='panel';
+  const head = document.createElement('div'); head.className='section-head';
+  head.innerHTML = `<h2>${t('headPuzzle')}</h2><span class="count">${po.i}/${po.order.length} · ${t('correctWord')}: ${po.score}</span>`;
+  panel.appendChild(head);
+
+  if(po.i >= po.order.length){
+    panel.innerHTML += `<div class="quiz-result"><div class="big">${po.score}/${po.order.length}</div><p>${t('puzzleResultSuffix')}</p></div>`;
+    const btn = document.createElement('button'); btn.className='btn-primary'; btn.style.display='block'; btn.style.margin='0 auto';
+    btn.textContent=t('btnPlayAgain');
+    btn.onclick=()=>{ state.puzzleOrder=null; renderPuzzle(root); };
+    panel.appendChild(btn); root.appendChild(panel); return;
+  }
+
+  const item = pool.find(q=>q.id===po.order[po.i]);
+  const qEl = document.createElement('div'); qEl.className='quiz-q';
+  qEl.innerHTML = bi(item.q_pt, item.q_en);
+  panel.appendChild(qEl);
+
+  const n = item.opts_pt.length;
+  for(let i=0;i<n;i++){
+    const isCorrectOption = item.opts_pt[i]===item.a_pt;
+    const el = makeOptionEl(item.opts_pt[i], item.opts_en[i], {answered:false}, ()=>{
+      po.answered = true;
+      if(isCorrectOption) po.score++;
+      [...panel.querySelectorAll('.quiz-opt')].forEach((o,j)=>{
+        o.classList.add('disabled'); o.tabIndex=-1;
+        if(item.opts_pt[j]===item.a_pt) o.classList.add('correct');
+        else if(j===i) o.classList.add('wrong');
+      });
+      nextBtn.disabled=false;
+    });
+    panel.appendChild(el);
+  }
+
+  const nextBtn = document.createElement('button'); nextBtn.className='btn-primary'; nextBtn.style.marginTop='10px';
+  nextBtn.textContent=t('btnNextTerm'); nextBtn.disabled=true;
+  nextBtn.onclick=()=>{ po.i++; po.answered=false; renderPuzzle(root); };
+  panel.appendChild(nextBtn);
+
+  root.appendChild(panel);
+}
+
+/* ---------------- PROBLEMAS MODE (basico only, multiple choice) ---------------- */
+function renderProblema(root){
+  root.innerHTML = '';
+  const pool = byLevel('basico').filter(q=>q.tipo==='problem');
+  const panel = document.createElement('div'); panel.className='panel';
+  const answered = pool.filter(q=>state.mcAnswered[q.id]).length;
+  const correct = pool.filter(q=>state.mcAnswered[q.id] && state.mcAnswered[q.id].correct).length;
+  panel.innerHTML = `<div class="section-head"><h2>${t('headProblema')}</h2>
+    <span class="count">${pool.length} ${t('scenariosCount')}<br>${t('answeredLabel')}: ${answered}/${pool.length} · ${t('correctLabel')}: ${correct}</span></div>`;
+  pool.forEach(item=>{
+    const card = document.createElement('div'); card.className='prob-card';
+    card.innerHTML = `<div class="lbl">${t('lblSituation')}</div><div class="p-block">${bi(item.q_pt, item.q_en)}</div>`;
+    const optsWrap = document.createElement('div');
+    const already = state.mcAnswered[item.id];
+    const options = getMcOptions(pool, item);
+    options.forEach(opt=>{
+      const isCorrectOption = opt.id===item.id;
+      const isChosen = already && already.chosenId===opt.id;
+      const el = makeOptionEl(opt.a_pt, opt.a_en, {answered: !!already, isCorrectOption, isChosen}, ()=>{
+        markAnswered(item, opt.id, isCorrectOption);
+        renderProblema(root);
+      });
+      optsWrap.appendChild(el);
+    });
+    card.appendChild(optsWrap);
+    panel.appendChild(card);
+  });
+  root.appendChild(panel);
+}
+
+/* ---------------- GUIA DE PRONUNCIA (glossario) ---------------- */
+function renderGlossario(root){
+  root.innerHTML = '';
+  const panel = document.createElement('div'); panel.className='panel';
+  panel.innerHTML = `<div class="section-head"><h2>${t('headGloss')}</h2><span class="count">${GLOSS.length} ${t('termsCount')}</span></div>
+    <div class="gloss-note">${t('glossNote')}</div>`;
+  const search = document.createElement('input'); search.className='gloss-search'; search.placeholder=t('glossSearchPh');
+  panel.appendChild(search);
+  const list = document.createElement('div');
+  panel.appendChild(list);
+
+  function draw(filterTxt){
+    list.innerHTML = '';
+    const f = (filterTxt||'').toLowerCase();
+    GLOSS.filter(g => !f || g[0].includes(f) || g[2].toLowerCase().includes(f) || g[3].toLowerCase().includes(f)).forEach(g=>{
+      const [en, phon, ptMeaning, enMeaning] = g;
+      const id = registerSpeak(en);
+      const meaning = chromeLang()==='en' ? enMeaning : ptMeaning;
+      const row = document.createElement('div'); row.className='gloss-item';
+      row.innerHTML = `
+        <button class="gloss-audio" onclick="speakByRef('${id}')" title="Play">🔊</button>
+        <div class="gloss-text">
+          <div class="gloss-en">${en}</div>
+          <div class="gloss-phon">🗣️ ${phon}</div>
+          <div class="gloss-pt">${meaning}</div>
+        </div>`;
+      list.appendChild(row);
+    });
+  }
+  search.oninput = ()=>draw(search.value);
+  draw('');
+  root.appendChild(panel);
+}
+
+/* ---------------- HERO PLOT (signature element, idle) ---------------- */
+function drawHeroPlot(){
+  const svg = document.getElementById('hero-plot');
+  const accent = state.level==='basico' ? '#35D6C0' : '#E7A94A';
+  svg.innerHTML = `
+    <circle cx="120" cy="120" r="108" fill="none" stroke="${accent}" stroke-width="1" opacity="0.18"/>
+    <circle cx="120" cy="120" r="76" fill="none" stroke="${accent}" stroke-width="1" opacity="0.28"/>
+    <circle cx="120" cy="120" r="44" fill="none" stroke="${accent}" stroke-width="1.2" opacity="0.45"/>
+    <line x1="120" y1="12" x2="120" y2="228" stroke="${accent}" stroke-width="0.6" opacity="0.15"/>
+    <line x1="12" y1="120" x2="228" y2="120" stroke="${accent}" stroke-width="0.6" opacity="0.15"/>
+    <g id="hero-vessel" transform="translate(120,120) rotate(0)">
+      <path d="M0,-16 L9,20 L0,13 L-9,20 Z" fill="${accent}"/>
+    </g>
+    <circle cx="120" cy="120" r="2" fill="#E7EEF6"/>
+  `;
+  animateHero();
+}
+let heroRAF=null;
+function animateHero(){
+  if(heroRAF) cancelAnimationFrame(heroRAF);
+  const vessel = document.getElementById('hero-vessel');
+  let t2=0;
+  function tick(){
+    t2 += 0.006;
+    const rot = Math.sin(t2)*6;
+    if(vessel) vessel.setAttribute('transform',`translate(120,120) rotate(${rot})`);
+    heroRAF = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+/* ---------------- SIMULADOR DP (avancado only) ---------------- */
+const REF_POS = {
+  platform: {x:6, y:-10},
+  tug: {x:-8, y:-9},
+};
+const LASER_FOV_HALF = 65;   // degrees either side of the bow
+const LASER_MAX_RANGE = 25;  // meters (in this simulator's compressed scale)
+const THRUSTERS = [
+  {id:'bt1', key:'thrBowTunnel1', azimuth:false},
+  {id:'bt2', key:'thrBowTunnel2', azimuth:false},
+  {id:'sazp', key:'thrSternAzPort', azimuth:true},
+  {id:'sazs', key:'thrSternAzStbd', azimuth:true},
+];
+const FAILED_THRUSTER_IDX = 2;
+
+const sim = {
+  running:false, raf:null, t:0,
+  windSpeed:15, windDir:45, currSpeed:0.6, currDir:200,
+  scenario:'nenhuma', philosophy:'kongsberg', refType:'none', screen:'posicao',
+  posX:0, posY:0, velX:0, velY:0,
+  heading:0, yawRate:0, trail:[],
+  alarms:[], prevStatus:'ok', prevLaserLock:null,
+};
+
+function statusLevel(excursion){ return excursion<1.5 ? 'ok' : excursion<4 ? 'warn' : 'bad'; }
+function laserLockCheck(x,y,heading){
+  if(!sim.refType || sim.refType==='none') return null;
+  const rp = REF_POS[sim.refType];
+  const dxr=rp.x-x, dyr=rp.y-y;
+  const dist=Math.sqrt(dxr*dxr+dyr*dyr);
+  const bearing=Math.atan2(dxr,-dyr)*180/Math.PI;
+  const rel=((bearing-heading+540)%360)-180;
+  return Math.abs(rel)<=LASER_FOV_HALF && dist<=LASER_MAX_RANGE;
+}
+function pushAlarm(text, level){
+  sim.alarms.unshift({time: sim.t, text, level});
+  if(sim.alarms.length>14) sim.alarms.length = 14;
+  if(sim.screen==='alarmes') renderAlarmList();
+}
+
+function renderSimulador(root){
+  root.innerHTML = '';
+  sim.running=false; if(sim.raf) cancelAnimationFrame(sim.raf);
+  sim.t=0; sim.posX=0; sim.posY=0; sim.velX=0; sim.velY=0; sim.heading=0; sim.yawRate=0; sim.trail=[];
+  sim.alarms=[]; sim.prevStatus='ok'; sim.prevLaserLock=null;
+
+  const panel = document.createElement('div'); panel.className='panel';
+  panel.innerHTML = `<div class="section-head"><h2>${t('simTitle')}</h2><span class="count">${t('simEduTag')}</span></div>`;
+
+  const grid = document.createElement('div'); grid.className='sim-grid';
+
+  const plotBox = document.createElement('div'); plotBox.className='sim-plot';
+  plotBox.innerHTML = `
+    <div class="cat-filter" id="sim-screen-tabs" style="width:100%;"></div>
+    <div id="sim-screen-content" style="width:100%;"></div>
+  `;
+  grid.appendChild(plotBox);
+
+  const ctrl = document.createElement('div'); ctrl.className='sim-controls';
+  ctrl.innerHTML = `
+    <div class="ctrl-group">
+      <div class="gl">${t('envCond')}</div>
+      <div class="slider-row"><span>${t('wind')}</span><span class="val" id="v-wind">${sim.windSpeed} kn</span></div>
+      <input type="range" id="s-wind" min="0" max="45" value="${sim.windSpeed}">
+      <div class="slider-row"><span>${t('lblWindDir')}</span><span class="val" id="v-wind-dir">${String(sim.windDir).padStart(3,'0')}°</span></div>
+      <input type="range" id="s-wind-dir" min="0" max="359" value="${sim.windDir}">
+      <div class="slider-row"><span>${t('current')}</span><span class="val" id="v-curr">${sim.currSpeed.toFixed(1)} kn</span></div>
+      <input type="range" id="s-curr" min="0" max="30" value="${sim.currSpeed*10}">
+      <div class="slider-row"><span>${t('lblCurrentDir')}</span><span class="val" id="v-curr-dir">${String(sim.currDir).padStart(3,'0')}°</span></div>
+      <input type="range" id="s-curr-dir" min="0" max="359" value="${sim.currDir}">
+    </div>
+    <div class="ctrl-group">
+      <div class="gl">${t('failScenario')}</div>
+      <select id="s-scenario">
+        <option value="nenhuma">${t('optNoFail')}</option>
+        <option value="thruster">${t('optThrusterLoss')}</option>
+        <option value="blackout">${t('optBlackout')}</option>
+        <option value="sensor">${t('optSensorFail')}</option>
+      </select>
+      <div class="gl" style="margin-top:12px;">${t('sysPhilosophy')}</div>
+      <select id="s-philosophy">
+        <option value="kongsberg">${t('optKongsberg')}</option>
+        <option value="ge">${t('optGE')}</option>
+        <option value="generico">${t('optGeneric')}</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <div class="gl">${t('refGroupLabel')}</div>
+      <select id="s-reftype">
+        <option value="none">${t('refNone')}</option>
+        <option value="platform">${t('refPlatform')}</option>
+        <option value="tug">${t('refTug')}</option>
+      </select>
+      <div class="sim-note" style="margin-top:8px;">${t('refNote')}</div>
+    </div>
+    <div class="sim-btns">
+      <button class="btn-primary" id="s-start">${t('btnStart')}</button>
+      <button class="btn-ghost" id="s-reset">${t('btnReset')}</button>
+    </div>
+    <div class="sim-note">${t('simNote')}</div>
+  `;
+  grid.appendChild(ctrl);
+
+  panel.appendChild(grid);
+  root.appendChild(panel);
+
+  const SCREENS = [
+    {id:'posicao', key:'simScreenPosicao'},
+    {id:'energia', key:'simScreenEnergia'},
+    {id:'propulsores', key:'simScreenPropulsores'},
+    {id:'alarmes', key:'simScreenAlarmes'},
+  ];
+  const tabsWrap = document.getElementById('sim-screen-tabs');
+  SCREENS.forEach(s=>{
+    const b = document.createElement('button');
+    b.className = 'cat-pill'+(sim.screen===s.id?' active':'');
+    b.textContent = t(s.key);
+    b.onclick = ()=>{ sim.screen=s.id; renderActiveScreen(); [...tabsWrap.children].forEach(c=>c.classList.remove('active')); b.classList.add('active'); };
+    tabsWrap.appendChild(b);
+  });
+
+  document.getElementById('s-wind').oninput = e=>{ sim.windSpeed=+e.target.value; document.getElementById('v-wind').textContent=sim.windSpeed+' kn'; if(!sim.running) renderActiveScreen(); };
+  document.getElementById('s-wind-dir').oninput = e=>{ sim.windDir=+e.target.value; document.getElementById('v-wind-dir').textContent=String(sim.windDir).padStart(3,'0')+'°'; if(!sim.running) renderActiveScreen(); };
+  document.getElementById('s-curr').oninput = e=>{ sim.currSpeed=+e.target.value/10; document.getElementById('v-curr').textContent=sim.currSpeed.toFixed(1)+' kn'; if(!sim.running) renderActiveScreen(); };
+  document.getElementById('s-curr-dir').oninput = e=>{ sim.currDir=+e.target.value; document.getElementById('v-curr-dir').textContent=String(sim.currDir).padStart(3,'0')+'°'; if(!sim.running) renderActiveScreen(); };
+  document.getElementById('s-scenario').onchange = e=>{
+    sim.scenario=e.target.value;
+    pushAlarm(t('alarmScenarioChanged')+': '+e.target.options[e.target.selectedIndex].text, 'info');
+    if(!sim.running) renderActiveScreen();
+  };
+  document.getElementById('s-philosophy').onchange = e=>{ sim.philosophy=e.target.value; };
+  document.getElementById('s-reftype').onchange = e=>{ sim.refType=e.target.value; sim.prevLaserLock=null; if(!sim.running) renderActiveScreen(); };
+  document.getElementById('s-start').onclick = ()=>{
+    sim.running = !sim.running;
+    document.getElementById('s-start').textContent = sim.running ? t('btnPause') : t('btnResume');
+    if(sim.running) simLoop();
+  };
+  document.getElementById('s-reset').onclick = ()=>{
+    sim.running=false; if(sim.raf) cancelAnimationFrame(sim.raf);
+    sim.t=0; sim.posX=0; sim.posY=0; sim.velX=0; sim.velY=0; sim.heading=0; sim.yawRate=0; sim.trail=[];
+    sim.alarms=[]; sim.prevStatus='ok'; sim.prevLaserLock=null;
+    document.getElementById('s-start').textContent=t('btnStart');
+    renderActiveScreen();
+  };
+
+  renderActiveScreen();
+}
+
+function renderActiveScreen(){
+  const content = document.getElementById('sim-screen-content');
+  if(!content) return;
+  if(sim.screen==='posicao'){
+    content.innerHTML = `
+      <svg id="sim-svg" viewBox="0 0 300 300"></svg>
+      <div class="sim-readout">
+        <div class="ro"><div class="l">${t('roExcursion')}</div><div class="v" id="ro-pos">0.0 m</div></div>
+        <div class="ro"><div class="l">${t('roCapacity')}</div><div class="v ok" id="ro-cap">100%</div></div>
+        <div class="ro"><div class="l">${t('roHeading')}</div><div class="v" id="ro-heading">000°</div></div>
+        <div class="ro"><div class="l">${t('roSpeed')}</div><div class="v" id="ro-speed">0.0 m/min</div></div>
+        <div class="ro"><div class="l">${t('roStatus')}</div><div class="v ok" id="ro-status">${t('statusOk')}</div></div>
+        <div class="ro"><div class="l">${t('roTime')}</div><div class="v" id="ro-time">0 s</div></div>
+        <div class="ro" style="grid-column:1 / span 2;"><div class="l">${t('roLaser')}</div><div class="v" id="ro-laser">—</div></div>
+      </div>`;
+    drawSim(100,0,0);
+  } else if(sim.screen==='energia'){
+    content.innerHTML = `
+      <svg id="sim-svg-pms" viewBox="0 0 300 220"></svg>
+      <div class="sim-readout">
+        <div class="ro"><div class="l">${t('pmsFreq')}</div><div class="v ok" id="ro-freq">60.0 Hz</div></div>
+        <div class="ro"><div class="l">${t('pmsVoltage')}</div><div class="v" id="ro-volt">6600 V</div></div>
+        <div class="ro"><div class="l">${t('pmsLoad')}</div><div class="v ok" id="ro-load">0%</div></div>
+        <div class="ro"><div class="l">${t('pmsBus')}</div><div class="v ok" id="ro-bus">${t('busClosed')}</div></div>
+      </div>`;
+    drawPMS();
+  } else if(sim.screen==='propulsores'){
+    content.innerHTML = `<div class="thr-grid" id="thr-grid"></div>`;
+    drawThrusters();
+  } else if(sim.screen==='alarmes'){
+    content.innerHTML = `<div class="alarm-list" id="alarm-list"></div>`;
+    renderAlarmList();
+  }
+}
+
+function renderAlarmList(){
+  const list = document.getElementById('alarm-list');
+  if(!list) return;
+  if(sim.alarms.length===0){
+    list.innerHTML = `<div class="alarm-empty">${t('noAlarms')}</div>`;
+    return;
+  }
+  list.innerHTML = sim.alarms.map(a=>{
+    const mm = Math.floor(a.time/60).toString().padStart(2,'0');
+    const ss = Math.floor(a.time%60).toString().padStart(2,'0');
+    return `<div class="alarm-item ${a.level}"><span class="alarm-time">${mm}:${ss}</span><span>${a.text}</span></div>`;
+  }).join('');
+}
+
+function capacityFactor(){
+  switch(sim.scenario){
+    case 'thruster': return 0.72;
+    case 'blackout': return 0.55;
+    case 'sensor': return 0.9;
+    default: return 1.0;
+  }
+}
+
+function simLoop(){
+  if(!sim.running) return;
+  sim.t += 0.1;
+  const windRad = sim.windDir*Math.PI/180;
+  const currRad = sim.currDir*Math.PI/180;
+  const windForce = 0.012*sim.windSpeed*sim.windSpeed;
+  const currForce = 3.2*sim.currSpeed*sim.currSpeed;
+  let fx = Math.sin(windRad)*windForce + Math.sin(currRad)*currForce;
+  let fy = -Math.cos(windRad)*windForce - Math.cos(currRad)*currForce;
+  if(sim.scenario==='sensor'){ fx += Math.sin(sim.t*0.7)*0.6; fy += Math.cos(sim.t*0.5)*0.6; }
+  const cap = capacityFactor();
+  const demand = Math.sqrt(fx*fx+fy*fy);
+  const available = 14*cap;
+  const compensated = Math.min(1, available/Math.max(demand,0.001));
+  const netX = fx*(1-compensated); const netY = fy*(1-compensated);
+  sim.velX = sim.velX*0.9 + netX*0.15; sim.velY = sim.velY*0.9 + netY*0.15;
+  sim.posX += sim.velX*0.4; sim.posY += sim.velY*0.4;
+  const magNow = Math.sqrt(sim.posX*sim.posX+sim.posY*sim.posY);
+  const MAX_EXCURSION = 60;
+  if(magNow > MAX_EXCURSION){
+    const s = MAX_EXCURSION/magNow;
+    sim.posX *= s; sim.posY *= s;
+  }
+
+  const envAngle = Math.atan2(fx, -fy) * 180/Math.PI;
+  let headingError = ((envAngle - sim.heading + 540) % 360) - 180;
+  const weatherTorque = headingError * 0.018 * (1 - compensated);
+  sim.yawRate = sim.yawRate*0.92 + weatherTorque*0.08 + Math.sin(sim.t*0.15)*0.012;
+  sim.heading += sim.yawRate;
+
+  sim.trail.push({x:sim.posX, y:sim.posY});
+  if(sim.trail.length>45) sim.trail.shift();
+
+  const excursion = Math.sqrt(sim.posX*sim.posX+sim.posY*sim.posY);
+  const capPct = Math.round(Math.min(100, compensated*100));
+  const speed = Math.sqrt(sim.velX*sim.velX+sim.velY*sim.velY)*15;
+
+  const curStatus = statusLevel(excursion);
+  if(curStatus !== sim.prevStatus){
+    if(curStatus==='bad') pushAlarm(t('alarmLossOfPosition'), 'bad');
+    else if(curStatus==='warn' && sim.prevStatus==='ok') pushAlarm(t('alarmDrifting'), 'warn');
+    else if(curStatus==='ok') pushAlarm(t('alarmPositionRestored'), 'ok');
+    sim.prevStatus = curStatus;
+  }
+  const curLock = laserLockCheck(sim.posX, sim.posY, sim.heading);
+  if(curLock!==null && curLock!==sim.prevLaserLock){
+    pushAlarm(curLock ? t('alarmLaserRestored') : t('alarmLaserLost'), curLock?'ok':'bad');
+    sim.prevLaserLock = curLock;
+  }
+
+  if(sim.screen==='posicao') drawSim(capPct, sim.posX, sim.posY, excursion, speed, fx, fy, compensated);
+  else if(sim.screen==='energia') drawPMS();
+  else if(sim.screen==='propulsores') drawThrusters(fx, fy, compensated);
+  sim.raf = requestAnimationFrame(simLoop);
+}
+
+function shipSvg(id, scale, fillColor, strokeColor){
+  return `<g id="${id}" transform="scale(${scale})">
+    <path d="M0,-19 L4.5,-13 Q6,-6 6,4 Q6,13 3,16 Q0,18.5 -3,16 Q-6,13 -6,4 Q-6,-6 -4.5,-13 Z"
+      fill="${fillColor}" stroke="${strokeColor}" stroke-width="1"/>
+    <rect x="-3.4" y="-11" width="6.8" height="7" rx="1" fill="${strokeColor}" opacity="0.55"/>
+    <rect x="-2" y="6" width="4" height="5" rx="0.8" fill="${strokeColor}" opacity="0.35"/>
+    <circle cx="0" cy="-16.5" r="1.3" fill="${strokeColor}" opacity="0.7"/>
+    <circle cx="-3.6" cy="13" r="1.3" fill="${strokeColor}" opacity="0.7"/>
+    <circle cx="3.6" cy="13" r="1.3" fill="${strokeColor}" opacity="0.7"/>
+  </g>`;
+}
+
+function platformSvg(color){
+  return `
+    <rect x="-11" y="-11" width="22" height="22" fill="#263349" stroke="${color}" stroke-width="1.2"/>
+    <line x1="-11" y1="-11" x2="11" y2="11" stroke="${color}" stroke-width="0.6" opacity="0.4"/>
+    <line x1="11" y1="-11" x2="-11" y2="11" stroke="${color}" stroke-width="0.6" opacity="0.4"/>
+    <circle cx="-9" cy="-9" r="1.6" fill="${color}"/>
+    <circle cx="9" cy="-9" r="1.6" fill="${color}"/>
+    <circle cx="-9" cy="9" r="1.6" fill="${color}"/>
+    <circle cx="9" cy="9" r="1.6" fill="${color}"/>
+    <rect x="-3" y="-3" width="6" height="6" fill="${color}" opacity="0.6"/>
+  `;
+}
+
+function gaugeSvg(cx, cy, dirDeg, magnitude, maxMag, color, label){
+  const len = 8 + Math.min(1, magnitude/maxMag)*16;
+  const rad = dirDeg*Math.PI/180;
+  const x2 = cx + Math.sin(rad)*len, y2 = cy - Math.cos(rad)*len;
+  return `
+    <circle cx="${cx}" cy="${cy}" r="19" fill="#0C1826" stroke="${color}" stroke-width="1" opacity="0.9"/>
+    <line x1="${cx}" y1="${cy}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${color}" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="1.6" fill="${color}"/>
+    <text x="${cx}" y="${cy+29}" text-anchor="middle" font-size="8" fill="${color}" font-family="JetBrains Mono, monospace">${label}</text>
+  `;
+}
+
+function drawSim(capPct, x, y, excursion, speed, fx, fy, compensated){
+  excursion = excursion===undefined ? Math.sqrt(x*x+y*y) : excursion;
+  const svg = document.getElementById('sim-svg');
+  if(!svg) return;
+  const accent = '#E7A94A';
+  const cx=150, cy=150;
+  const px = cx + Math.max(-78,Math.min(78,x*6));
+  const py = cy + Math.max(-78,Math.min(78,y*6));
+  const status = excursion<1.5 ? {t:t('statusOk'), c:'ok'} : excursion<4 ? {t:t('statusWarn'), c:'warn'} : {t:t('statusBad'), c:'bad'};
+  const ringColor = status.c==='ok' ? '#35D6C0' : status.c==='warn' ? '#E7A94A' : '#E85C4E';
+  const heading = sim.heading || 0;
+  const bob = Math.sin(sim.t*0.4)*0.5;
+  const roll = Math.sin(sim.t*0.3)*1.2;
+
+  const trailPts = (sim.trail||[]).map((p,i)=>{
+    const tx = cx + Math.max(-78,Math.min(78,p.x*6));
+    const ty = cy + Math.max(-78,Math.min(78,p.y*6));
+    const op = 0.06 + 0.5*(i/(sim.trail.length||1));
+    return `<circle cx="${tx.toFixed(1)}" cy="${ty.toFixed(1)}" r="1.6" fill="${ringColor}" opacity="${op.toFixed(2)}"/>`;
+  }).join('');
+
+  let thrustArrow = '';
+  if(fx!==undefined && compensated!==undefined){
+    const thrustAngle = Math.atan2(-fx, fy);
+    const tlen = 12 + compensated*16;
+    const tx2 = px + Math.sin(thrustAngle)*tlen;
+    const ty2 = py - Math.cos(thrustAngle)*tlen;
+    thrustArrow = `<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${tx2.toFixed(1)}" y2="${ty2.toFixed(1)}" stroke="${ringColor}" stroke-width="2" opacity="0.85" marker-end="url(#arrowhead)"/>`;
+  }
+
+  let refGraphic = '', laserGraphic = '';
+  let laserStatusText = '—', laserStatusClass = '';
+  if(sim.refType && sim.refType!=='none'){
+    const rp = REF_POS[sim.refType];
+    const rpx = cx + Math.max(-130,Math.min(130, rp.x*6));
+    const rpy = cy + Math.max(-130,Math.min(130, rp.y*6));
+    const dxr = rp.x - x, dyr = rp.y - y;
+    const distToRef = Math.sqrt(dxr*dxr+dyr*dyr);
+    const bearingToRef = Math.atan2(dxr, -dyr)*180/Math.PI;
+    let relBearing = ((bearingToRef - heading + 540)%360)-180;
+    const locked = Math.abs(relBearing) <= LASER_FOV_HALF && distToRef <= LASER_MAX_RANGE;
+    const laserColor = locked ? '#7FE8D6' : '#E85C4E';
+    laserGraphic = `<line x1="${px.toFixed(1)}" y1="${py.toFixed(1)}" x2="${rpx.toFixed(1)}" y2="${rpy.toFixed(1)}" stroke="${laserColor}" stroke-width="${locked?1.4:1}" opacity="${locked?0.85:0.45}" stroke-dasharray="${locked?'0':'4,3'}"/>`;
+    const refIcon = sim.refType==='platform'
+      ? platformSvg('#9FB4C9')
+      : shipSvg('reftug', 1.1, '#33455E', '#9FB4C9');
+    refGraphic = `<g transform="translate(${rpx.toFixed(1)},${rpy.toFixed(1)})">${refIcon}
+      <circle cx="0" cy="0" r="2" fill="#fff" opacity="0.9"/>
+    </g>`;
+    laserStatusText = distToRef.toFixed(1)+' m · '+(locked ? t('laserActive') : t('laserLost'));
+    laserStatusClass = locked ? 'ok' : 'bad';
+  }
+
+  svg.innerHTML = `
+    <defs>
+      <marker id="arrowhead" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="${ringColor}"/>
+      </marker>
+    </defs>
+    <circle cx="${cx}" cy="${cy}" r="98" fill="none" stroke="${accent}" stroke-width="1" opacity="0.15"/>
+    <circle cx="${cx}" cy="${cy}" r="68" fill="none" stroke="${accent}" stroke-width="1" opacity="0.25"/>
+    <circle cx="${cx}" cy="${cy}" r="30" fill="none" stroke="${ringColor}" stroke-width="1.3" opacity="0.7"/>
+    <line x1="${cx}" y1="42" x2="${cx}" y2="258" stroke="${accent}" stroke-width="0.5" opacity="0.12"/>
+    <line x1="42" y1="${cy}" x2="258" y2="${cy}" stroke="${accent}" stroke-width="0.5" opacity="0.12"/>
+    <path d="M${cx},${cy-14} L${cx+8},${cy+18} L${cx},${cy+11} L${cx-8},${cy+18} Z" fill="${accent}" opacity="0.35"/>
+    ${trailPts}
+    ${refGraphic}
+    ${laserGraphic}
+    ${thrustArrow}
+    <g transform="translate(${px.toFixed(1)},${(py+bob).toFixed(1)}) rotate(${(heading+roll).toFixed(1)})">
+      ${shipSvg('tug', 1.35, '#2C3B52', ringColor)}
+    </g>
+    <circle cx="${cx}" cy="${cy}" r="2" fill="#E7EEF6"/>
+    ${gaugeSvg(38, 38, sim.windDir, sim.windSpeed, 45, '#7FD9F0', t('wind').toUpperCase())}
+    ${gaugeSvg(262, 38, sim.currDir, sim.currSpeed, 3, '#35D6C0', t('current').toUpperCase())}
+  `;
+  const roPos = document.getElementById('ro-pos'); const roCap = document.getElementById('ro-cap');
+  const roStatus = document.getElementById('ro-status'); const roTime = document.getElementById('ro-time');
+  const roHeading = document.getElementById('ro-heading'); const roSpeed = document.getElementById('ro-speed');
+  const roLaser = document.getElementById('ro-laser');
+  if(roPos) roPos.textContent = excursion.toFixed(1)+' m';
+  if(roCap){ roCap.textContent = capPct+'%'; roCap.className='v '+(capPct>85?'ok':capPct>60?'warn':'bad'); }
+  if(roStatus){ roStatus.textContent = status.t; roStatus.className='v '+status.c; }
+  if(roTime) roTime.textContent = Math.round(sim.t)+' s';
+  if(roHeading) roHeading.textContent = (((Math.round(heading)%360)+360)%360).toString().padStart(3,'0')+'°';
+  if(roSpeed) roSpeed.textContent = (speed||0).toFixed(1)+' m/min';
+  if(roLaser){ roLaser.textContent = laserStatusText; roLaser.className = 'v '+laserStatusClass; }
+}
+
+function pmsValues(){
+  const blackout = sim.scenario==='blackout';
+  const baseLoad = Math.min(95, 30 + sim.windSpeed*1.1 + sim.currSpeed*8);
+  const load1 = Math.round(blackout ? Math.min(98, baseLoad*1.7) : baseLoad*0.55);
+  const load2 = Math.round(blackout ? 0 : baseLoad*0.55);
+  const freq = blackout ? Math.max(56, 59.6 - Math.max(0,load1-90)*0.15) : 60.0;
+  return {load1, load2, freq, busClosed: !blackout, voltage: blackout ? 6350 : 6600};
+}
+
+function genBoxSvg(x, load, tripped, label){
+  const barH = 34, barW = 12;
+  const fillH = tripped ? 0 : Math.round(barH*Math.min(100,load)/100);
+  const color = tripped ? '#E85C4E' : load>90 ? '#E7A94A' : '#35D6C0';
+  return `
+    <rect x="${x-32}" y="18" width="64" height="52" rx="4" fill="#182437" stroke="${color}" stroke-width="1.3"/>
+    <text x="${x}" y="32" text-anchor="middle" font-size="10" font-weight="700" fill="${color}" font-family="Chakra Petch, sans-serif">${label}</text>
+    <rect x="${x-8}" y="36" width="${barW}" height="${barH}" fill="#0C1826" stroke="${color}" stroke-width="0.8"/>
+    <rect x="${x-8}" y="${36+barH-fillH}" width="${barW}" height="${fillH}" fill="${color}"/>
+    ${tripped
+      ? `<line x1="${x-9}" y1="35" x2="${x+9}" y2="71" stroke="#E85C4E" stroke-width="2"/><line x1="${x+9}" y1="35" x2="${x-9}" y2="71" stroke="#E85C4E" stroke-width="2"/>`
+      : `<text x="${x}" y="66" text-anchor="middle" font-size="8" fill="${color}" font-family="JetBrains Mono, monospace">${Math.round(load)}%</text>`}
+  `;
+}
+
+function drawPMS(){
+  const svg = document.getElementById('sim-svg-pms');
+  if(!svg) return;
+  const v = pmsValues();
+  const gen1Color = v.load1>90 ? '#E7A94A' : '#35D6C0';
+  const gen2Color = !v.busClosed ? '#E85C4E' : (v.load2>90 ? '#E7A94A' : '#35D6C0');
+  const tieColor = v.busClosed ? '#35D6C0' : '#E85C4E';
+  svg.innerHTML = `
+    ${genBoxSvg(75, v.load1, false, t('genLabel')+' 1')}
+    ${genBoxSvg(225, v.load2, !v.busClosed, t('genLabel')+' 2')}
+    <line x1="75" y1="70" x2="75" y2="110" stroke="${gen1Color}" stroke-width="2"/>
+    <line x1="225" y1="70" x2="225" y2="110" stroke="${gen2Color}" stroke-width="2"/>
+    <line x1="75" y1="110" x2="135" y2="110" stroke="${gen1Color}" stroke-width="2.5"/>
+    <line x1="165" y1="110" x2="225" y2="110" stroke="${v.busClosed?tieColor:'#3A4A5E'}" stroke-width="2.5" stroke-dasharray="${v.busClosed?'0':'5,4'}"/>
+    <rect x="135" y="102" width="30" height="16" rx="2" fill="#182437" stroke="${tieColor}" stroke-width="1.3"/>
+    <text x="150" y="113" text-anchor="middle" font-size="7" fill="${tieColor}" font-family="JetBrains Mono, monospace">BTB</text>
+    <line x1="110" y1="110" x2="110" y2="150" stroke="${gen1Color}" stroke-width="1.6"/>
+    <line x1="190" y1="110" x2="190" y2="150" stroke="${v.busClosed?tieColor:'#3A4A5E'}" stroke-width="1.6"/>
+    <rect x="70" y="150" width="80" height="34" rx="4" fill="#182437" stroke="${gen1Color}" stroke-width="1.1"/>
+    <text x="110" y="171" text-anchor="middle" font-size="9" fill="${gen1Color}" font-family="Chakra Petch, sans-serif">${t('pmsThrustersLoad')}</text>
+    <rect x="150" y="150" width="80" height="34" rx="4" fill="#182437" stroke="${v.busClosed?'#5A7089':'#3A4A5E'}" stroke-width="1.1"/>
+    <text x="190" y="171" text-anchor="middle" font-size="9" fill="${v.busClosed?'#9FB4C9':'#5A7089'}" font-family="Chakra Petch, sans-serif">${t('pmsAuxLoad')}</text>
+  `;
+  const roFreq = document.getElementById('ro-freq'); const roVolt = document.getElementById('ro-volt');
+  const roLoad = document.getElementById('ro-load'); const roBus = document.getElementById('ro-bus');
+  if(roFreq){ roFreq.textContent = v.freq.toFixed(1)+' Hz'; roFreq.className='v '+(v.freq<58?'bad':v.freq<59.5?'warn':'ok'); }
+  if(roVolt) roVolt.textContent = v.voltage+' V';
+  if(roLoad){ const tot=Math.round((v.load1+v.load2)/2); roLoad.textContent=tot+'%'; roLoad.className='v '+(tot>85?'bad':tot>65?'warn':'ok'); }
+  if(roBus){ roBus.textContent = v.busClosed ? t('busClosed') : t('busOpen'); roBus.className='v '+(v.busClosed?'ok':'bad'); }
+}
+
+function drawThrusters(fx, fy, compensated){
+  const gridEl = document.getElementById('thr-grid');
+  if(!gridEl) return;
+  const demand = Math.sqrt((fx||0)*(fx||0)+(fy||0)*(fy||0));
+  const baseLoad = Math.min(100, 15 + (demand/14)*100*(compensated===undefined?1:compensated));
+  const envAngleDeg = Math.atan2(fx||0, -(fy||0))*180/Math.PI;
+  const failedIdx = sim.scenario==='thruster' ? FAILED_THRUSTER_IDX : -1;
+  gridEl.innerHTML = THRUSTERS.map((th,i)=>{
+    const failed = i===failedIdx;
+    const jitter = Math.sin(sim.t*0.5+i)*6;
+    const load = failed ? 0 : Math.max(5, Math.min(100, Math.round(baseLoad+jitter)));
+    const rpm = failed ? 0 : Math.round(load*8.4);
+    const angle = (!failed && th.azimuth) ? Math.round((((envAngleDeg+180)+(i===2?-18:18))%360+360)%360) : null;
+    const barColor = failed ? 'var(--red)' : load>85 ? 'var(--amber)' : 'var(--level-accent)';
+    return `
+      <div class="thr-card ${failed?'failed':''}">
+        <div class="thr-name">${t(th.key)}</div>
+        <div class="thr-bar"><div class="thr-bar-fill" style="width:${load}%;background:${barColor}"></div></div>
+        <div class="thr-meta">${failed ? t('thrFailed') : `${t('thrLoad')} ${load}% · ${t('thrRpm')} ${rpm}${angle!==null?' · '+t('thrAngle')+' '+angle+'°':''}`}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ---------------- settings wiring ---------------- */
+document.getElementById('lang-switch').querySelectorAll('button').forEach(b=>{
+  b.onclick = ()=>{
+    state.lang = b.dataset.val;
+    document.getElementById('lang-switch').querySelectorAll('button').forEach(x=>x.classList.toggle('active', x===b));
+    refreshChrome(); updateHeroText(); refreshStats(); renderTabs(); renderTab();
+  };
+});
+document.getElementById('pron-toggle').onchange = e=>{ state.pron = e.target.checked; renderTab(); };
+
+/* ---------------- init ---------------- */
+setLevel('basico');
+</script>
+</body>
+</html>
